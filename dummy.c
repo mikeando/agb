@@ -15,7 +15,7 @@ int main() {
 	// Lets open ourselves a repo
 	//
 	git_repository * repo = NULL;
-	int ok =  git_repository_open(&repo, "/tmp/git/test_repo");
+	int ok =  git_repository_open(&repo, "/Users/michaelanderson/Code/ANB/testDocRepos/test_repo/");
 	printf("git_repository_open returned %d\n", ok);
 
 	git_reference * head_ref = NULL;
@@ -293,10 +293,12 @@ int remote_test(ANBGitBridge* anbGitBridge, ANBGitBridgeError * e) {
 	return 0;
 }
 
+
+
 void example() {
 
 	git_repository * repo = NULL;
-	int ok =  git_repository_open(&repo, "/tmp/git/test_repo");
+	int ok =  git_repository_open(&repo, "/Users/michaelanderson/Code/ANB/testDocRepos/test_repo/");
 	printf("git_repository_open returned %d\n", ok);
 
 	ANBGitBridge anbGitBridge;
@@ -310,6 +312,8 @@ void example() {
 		GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX |
 		GIT_STATUS_OPT_SORT_CASE_SENSITIVELY;
 
+	//   + key seems to be git_status_list_new
+	//   +   further details via  git_status_list_entrycount and git_status_byindex
 	git_status_list *status;
 	ok = git_status_list_new(&status, repo, &statusopt);
 	if(ok<0) {
@@ -321,24 +325,62 @@ void example() {
 	size_t i, maxi = git_status_list_entrycount(status);
 	for (i = 0; i < maxi; ++i) {
 		s = git_status_byindex(status, i);
-		printf("STATUS : %p\n",s);
+		const char * old_path = s->index_to_workdir->old_file.path;
+		const char * new_path = s->index_to_workdir->new_file.path;
+		/*
+		   GIT_STATUS_INDEX_NEW        = (1u << 0),
+		   GIT_STATUS_INDEX_MODIFIED   = (1u << 1),
+		   GIT_STATUS_INDEX_DELETED    = (1u << 2),
+		   GIT_STATUS_INDEX_RENAMED    = (1u << 3),
+		   GIT_STATUS_INDEX_TYPECHANGE = (1u << 4),
+
+		   GIT_STATUS_WT_NEW           = (1u << 7),
+		   GIT_STATUS_WT_MODIFIED      = (1u << 8),
+		   GIT_STATUS_WT_DELETED       = (1u << 9),
+		   GIT_STATUS_WT_TYPECHANGE    = (1u << 10),
+		   GIT_STATUS_WT_RENAMED       = (1u << 11),
+		   */
+
+		printf("STATUS : %p %d %s -> %s\n",s, s->status,old_path,new_path);
 	}
 
+	//  - Commit if needed
+	// All the entries that are WT_NEW need to be staged
+	// Same for WT_MODIFIED
+	//
+	// What call do we need to make on WT_DELETED
+	//
+	// Once all these have been processed we need to commit the change if anything is in an INDEX_XYZ state
+	//
+	// Adding / changing / removing files seems to be done with the 
+	// git_index_xyz functions
+	//
+	//
+	// May be able to combine the check and index sync using git_index_update_all
+	// To create the commit we need to use 
+	// GIT_EXTERN(int) git_index_write_tree(git_oid *out, git_index *index);
+	// To get the tree OID - then need to actually create the commit and update the refs.
+	//
+	// Get the index using the `git_repository_index` wrapper.
+	// 
+	// 
+
+	
 	git_status_list_free(status);
 
-	//   + key seems to be git_status_list_new
-	//   +   further details via  git_status_list_entrycount and git_status_byindex
 	
 
 	//
-	//  - Commit if needed
 	//
 	// Fetch
 	//
 	// See if we're a fast-forward, behind, or merge
 	//
-	// -- FF => update origin and push
-	// -- Behind => update head
-	// -- merge => merge
+	// //Seems to be git_merge_base to find out this status.
+	// -- FF => update origin and push (mergebase = this )
+	// -- Behind => update head ( mergebase = origin )
+	// -- merge => merge ( mergebase != origin, mergebase != this )
+	//
+	//
 }
 
