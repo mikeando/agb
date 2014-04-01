@@ -1,7 +1,20 @@
 all : test.x
 
-INCLUDES=-I../../../libgit2/include -I..
+INCLUDES=-I../../../libgit2/include -I.. -I.
+LIBS=-L../../../libgit2/build -lgit2
+CFLAGS=-Wall -Wimplicit-function-declaration -Wimplicit-int -Wimplicit
 
-test.x : test.c ../ANBGitBridge.h
-	g++ -g test.c -o test.x $(INCLUDES)
+utils/test_utils.o : utils/test_utils.c utils/test_utils.h
+	gcc -g -c $(CFLAGS) utils/test_utils.c -o utils/test_utils.o $(INCLUDES)
+
+
+core/sync.o : core/sync.c
+	gcc -g -c $(CFLAGS) core/sync.c -o core/sync.o $(INCLUDES)
+
+
+clar.o : clar.c clar.h clar.suite
+	gcc -g -c clar.c
+
+test.x : test.c ../ANBGitBridge.h clar.o core/sync.o utils/test_utils.o
+	gcc -g $(CFLAGS) test.c -o test.x $(INCLUDES) $(LIBS) external/popen3.o clar.o core/sync.o utils/test_utils.o
 

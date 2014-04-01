@@ -14,10 +14,10 @@ struct ANBGitBridge {
 	const char * origin_name; // Usually "origin
 };
 
-struct ANBGitBridgeError {
+typedef struct ANBGitBridgeError {
 	const char * message;
 	int error_code;
-};
+} ANBGitBridgeError;
 
 void anb_git_bridge_error_init(ANBGitBridgeError * e);
 void anb_git_bridge_error_free(ANBGitBridgeError * e);

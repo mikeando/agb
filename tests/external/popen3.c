@@ -102,7 +102,7 @@ pid_t popen3(char *command, int *writefd, int *readfd, int *errfd)
 				}
 				close(err_pipe[1]);
 			}
-			execl("/bin/sh", "/bin/sh", "-c", command, (char *)NULL);
+			execl("/bin/bash", "/bin/bash", "-c", command, (char *)NULL);
 			perror("Error executing command in child process");
 			exit(-1);
  
