@@ -6,27 +6,6 @@
 #include <unistd.h>
 #include <string.h>
 #include "utils/test_utils.h"
-//=====================================
-// Extensions to basic clar functions
-// TODO: Move these into clarx.c and name appropriately
-//=====================================
-// This leaks on failure .. but who cares.
-void cl_fail_v(const char * file, int line, const char * fmt, ...) {
-	va_list ap;
-	va_start(ap,fmt);
-	char * mesg;
-	vasprintf(&mesg,fmt,ap);
-	va_end(ap);
-	clar__fail(file,line,"Test Failed",mesg,1);
-}
-
-//TODO: Make this use a nice version of c1, c2 (think about what happens if
-//c1==0, or is otherwise unprintable.
-void clar__assert_equal_c(const char * file, int line, char* fmt, char c1, char c2){
-	if(c1!=c2) {
-		cl_fail_v(file,line,fmt,c1,c2);
-	}
-}
 
 
 

@@ -2,6 +2,7 @@
 #include "ANBGitBridge.h"
 
 #include "utils/test_utils.h"
+#include "utils/clarx.h"
 #include <stdio.h>
 
 void init_bridge(ANBGitBridge* anbGitBridge) {
