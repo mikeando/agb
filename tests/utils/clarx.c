@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "clar.h"
+#include "clar/clar.h"
 
 //=====================================
 // Extensions to basic clar functions

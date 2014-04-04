@@ -1,4 +1,4 @@
-#include "clar.h"
+#include "clar/clar.h"
 #include "ANBGitBridge.h"
 #include "external/popen3.h"
 #include <stdio.h>

@@ -1,4 +1,4 @@
-#include "clar.h"
+#include "clar/clar.h"
 #include "anbgitbridge.h"
 #include "anbgitbridge/internal/types.h"
 #include "git2.h"

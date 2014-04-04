@@ -6,8 +6,10 @@ lib = env.Library('anbgitbridge', src)
 
 test_utils_env=env.Clone()
 test_utils_env.Append( CPPPATH=['tests'] )
-test_utils_src = ( Glob('tests/external/*.c'), Glob('tests/utils/*.c') )
+test_utils_src = ( Glob('tests/external/*.c'), Glob('tests/utils/*.c'), Glob('tests/clar/*.c') )
 test_utils_lib=test_utils_env.Library('anbgitbridge_testutils', test_utils_src)
+test_utils_env.Command('tests/clar.suite', Glob('src/core/*.c'), "python ./tests/clar/generate.py tests") 
+
 
 test_env=env.Clone()
 test_env.Append( CPPPATH=['tests'] )

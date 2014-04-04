@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-#include "clar.h"
+#include "clar/clar.h"
 #include "git2.h"
 
 int main(int argc, char* argv[]) {
