@@ -1,4 +1,4 @@
-static const char *
+static inline const char *
 fixture_path(const char *base, const char *fixture_name)
 {
 	static char _path[4096];

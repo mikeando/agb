@@ -281,7 +281,7 @@ shell_out(char * const argv[])
 	return WEXITSTATUS(status);
 }
 
-static void
+static inline void
 fs_copy(const char *_source, const char *dest)
 {
 	char *argv[5];
