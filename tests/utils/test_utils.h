@@ -74,3 +74,8 @@ int repo_contains(const char * repo_name, const char * filename );
  * Will often be called as `status_in_commit(repo,"HEAD","a_file.txt")`
  */
 char status_in_commit(const char * repo_name, const char * commit_id, const char * filename);
+
+void init_bridge_with_repo(ANBGitBridge* anbGitBridge, const char * repo_name);
+void init_bridge(ANBGitBridge* anbGitBridge);
+void uninit_bridge(ANBGitBridge* anbGitBridge);
+

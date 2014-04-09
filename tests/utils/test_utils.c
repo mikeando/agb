@@ -172,3 +172,26 @@ char status_in_commit(const char * repo_name, const char * commit_id, const char
 	return result[0];
 }
 
+//TODO: This may be what we really move into the core library!
+#include "git2.h"
+#include "anbgitbridge/internal/types.h"
+void init_bridge_with_repo(ANBGitBridge* anbGitBridge, const char * repo_name) {
+
+	char * repo_path;
+	asprintf(&repo_path, "%s/%s", temp_dir, repo_name ); 
+	git_repository_open(&anbGitBridge->repository,repo_path);
+	anbGitBridge->origin_name = "origin";
+}
+
+void init_bridge(ANBGitBridge* anbGitBridge) {
+
+	char * repo_path;
+	asprintf(&repo_path, "%s/simple_repo", temp_dir ); 
+	git_repository_open(&anbGitBridge->repository,repo_path);
+	anbGitBridge->origin_name = "origin";
+}
+
+
+void uninit_bridge(ANBGitBridge* anbGitBridge) {
+	git_repository_free(anbGitBridge->repository);
+}
