@@ -1,12 +1,8 @@
 #include "anbgitbridge.h"
 #include "anbgitbridge/internal/types.h"
+#include "anbgitbridge/internal/eh.h"
 
 
-//TODO: Move me into eh.c and add to internal/eh.c
-int anb_git_bridge__translate(int errcode, const char * context, ANBGitBridgeError * error ) {
-	//TODO: Do something with the git error info and plug it into the error object
-	return 1;
-}
 
 int anb_git_bridge_sync_files(ANBGitBridge* anbGitBridge, ANBGitBridgeError * error) {
 	git_index *index=NULL;
