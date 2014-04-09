@@ -172,6 +172,16 @@ char status_in_commit(const char * repo_name, const char * commit_id, const char
 	return result[0];
 }
 
+//TODO: This serves too many repos. But I couldn't get whitelisting them working 
+//      and its not worth digging for too long.
+pid_t start_serving_repos(int port) {
+	char * cmd;
+	asprintf(&cmd,"git daemon --port=%d --base-path=%s --export-all", port, temp_dir);
+	pid_t pid = popen3(cmd, NULL, NULL, NULL);
+	free(cmd);
+	return pid;
+}
+
 //TODO: This may be what we really move into the core library!
 #include "git2.h"
 #include "anbgitbridge/internal/types.h"
