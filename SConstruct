@@ -1,6 +1,8 @@
 env = Environment()
 env.Append( CPPPATH=['include'] )
 env.Append( CPPPATH=['../../libgit2/include/'] )
+env.Append( CFLAGS=['-Wall','-g'] )
+env.Append( LINKFLAGS=['-g'] )
 src = ( Glob('src/*/*.c') )
 lib = env.Library('anbgitbridge', src)
 
