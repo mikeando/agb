@@ -1,3 +1,9 @@
 *.swp
 *.o
 *.x
+*.a
+.sconsign.dblite
+tests/test_data/git_test_*/
+tests/.clarcache
+tests/clar.suite
+run_tests
