@@ -8,6 +8,7 @@ struct ANBGitBridge {
 
 struct ANBGitBridgeError {
 	const char * message;
+	int error_code_git;
 	int error_code;
 };
 

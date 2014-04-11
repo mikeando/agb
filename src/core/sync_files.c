@@ -16,34 +16,33 @@ int anb_git_bridge_sync_files(ANBGitBridge* anbGitBridge, ANBGitBridgeError * er
        	const git_commit ** parents = NULL;
 
 	int ok;
-	const char * error_context = NULL;
 
 	if((ok=git_repository_index(&index, anbGitBridge->repository ))!=0) {
-		error_context = "git_repository_index";
+		anb_git_bridge__error_translate(error,"git_repository_index failed",ok);
 		goto cleanup_error;
 	}
 	if((ok=git_index_add_all(index, &array, 0, NULL, NULL))!=0) {
-		error_context = "git_index_add_all";
+		anb_git_bridge__error_translate(error,"git_index_add_all failed",ok);
 		goto cleanup_error;
 	}
 	if((ok=git_index_update_all(index, &array, NULL, NULL))!=0) {
-		error_context = "git_index_update_all";
+		anb_git_bridge__error_translate(error,"git_update_add_all failed",ok);
 		goto cleanup_error;
 	}
 
 	if((ok=git_index_write(index))!=0) {
-		error_context = "git_index_write";
+		anb_git_bridge__error_translate(error,"git_index_write failed",ok);
 		goto cleanup_error;
 	}
 
 	git_oid tree_oid;
 	if((ok=git_index_write_tree(&tree_oid, index))!=0) {
-		error_context = "git_index_write_tree";
+		anb_git_bridge__error_translate(error,"git_index_write_tree failed",ok);
 		goto cleanup_error;
 	}
 
 	if((ok=git_tree_lookup(&tree, anbGitBridge->repository, &tree_oid))!=0) {
-		error_context = "git_tree_lookup";
+		anb_git_bridge__error_translate(error,"git_tree_lookup failed",ok);
 		goto cleanup_error;
 	}
 
@@ -57,7 +56,7 @@ int anb_git_bridge_sync_files(ANBGitBridge* anbGitBridge, ANBGitBridgeError * er
 		int timezone_offset = 0;
 
 		if((ok=git_signature_new(&author_signature,"Someone","someone@somewhere.com", author_time, timezone_offset))!=0) {
-			error_context = "git_signature_new";
+			anb_git_bridge__error_translate(error,"git_signature_new failed",ok);
 			goto cleanup_error;
 		}
 	}
@@ -67,12 +66,12 @@ int anb_git_bridge_sync_files(ANBGitBridge* anbGitBridge, ANBGitBridgeError * er
 
 	git_oid head_commit;
 	if((ok=git_reference_name_to_id(&head_commit, anbGitBridge->repository, "HEAD"))!=0) {
-		error_context = "git_reference_name_to_id";
+		anb_git_bridge__error_translate(error,"git_reference_name_to_id failed",ok);
 		goto cleanup_error;
 	}
 
 	if((ok=git_commit_lookup((git_commit**)&parents[0], anbGitBridge->repository, &head_commit))!=0) {
-		error_context = "git_commit_lookup";
+		anb_git_bridge__error_translate(error,"git_commit_lookup failed",ok);
 		goto cleanup_error;
 	}
 	
@@ -93,7 +92,7 @@ int anb_git_bridge_sync_files(ANBGitBridge* anbGitBridge, ANBGitBridgeError * er
 				parents
 				);
 	if(ok!=0) {
-		error_context = "git_commit_create";
+		anb_git_bridge__error_translate(error,"git_commit_create failed",ok);
 		goto cleanup_error;
 	}
 
@@ -119,6 +118,6 @@ cleanup_error:
 	if(array.strings){
 		free(array.strings);
 	}
-	return anb_git_bridge__translate(ok,error_context,error);
+	return error->error_code; 
 }
 
