@@ -37,18 +37,13 @@ static void clar_print_error(int num, const struct clar_error *error)
 
 static void clar_print_ontest(const char *test_name, int test_number, int failed)
 {
-	(void)test_name;
-	(void)test_number;
-	printf("%c", failed ? 'F' : '.');
+	printf("   [%03d] %s : %s\n", test_number, test_name, (failed)?"FAILED":"OK");
 	fflush(stdout);
 }
 
 static void clar_print_onsuite(const char *suite_name, int suite_index)
 {
-	if (_clar.report_suite_names)
-		printf("\n%s", suite_name);
-
-	(void)suite_index;
+	printf("[%02d] %s\n", suite_index, suite_name);
 }
 
 static void clar_print_onabort(const char *msg, ...)
