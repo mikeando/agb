@@ -1,7 +1,5 @@
 #include "clar/clar.h"
 #include "anbgitbridge.h"
-/* TODO: Remove this include and switch to using pointers.. */
-#include "anbgitbridge/internal/types.h"
 #include "git2.h"
 
 #include "utils/test_utils.h"
@@ -21,69 +19,76 @@ int debug_me(const char * path, const char * refspec, void * payload) {
 	return 0;
 }
 
+ANBGitBridge  * anbGitBridge;
+ANBGitBridgeError * anbGitBridgeError;
+
+void test_core_sync__initialize(void) {
+	anb_gitbridge_error_new(&anbGitBridgeError);
+}
+
+void test_core_sync__cleanup(void) {
+	anb_gitbridge_bridge_delete(anbGitBridge);
+	anb_gitbridge_error_delete(anbGitBridgeError);
+}
+
+void setupDefault() {
+	create_simple_repo();
+	anb_gitbridge_bridge_new(&anbGitBridge);
+	init_bridge(anbGitBridge);
+}
+
+void setupTofu() {
+	create_repo("tofu");
+	anb_gitbridge_bridge_new(&anbGitBridge);
+	init_bridge_with_repo(anbGitBridge,"tofu");
+}
+
 
 void test_core_sync__add_simple(void) {
-	create_simple_repo();
+	setupDefault();
 	simple_repo_create_file("dummy.dat","hello world");
 
-	ANBGitBridge anbGitBridge;
-	ANBGitBridgeError anbGitBridgeError;
-	init_bridge(&anbGitBridge);
-
-	anb_git_bridge_sync_files(&anbGitBridge, &anbGitBridgeError);
+	anb_git_bridge_sync_files(anbGitBridge, anbGitBridgeError);
 
 	cl_assert(simple_repo_contains("dummy.dat"));
 	cl_assert_equal_c('A', status_in_commit("simple_repo", "HEAD", "dummy.dat"));	
 }
 
 void test_core_sync__add_in_subdir(void) {
-	create_simple_repo();
+	setupDefault();
 	system_fmt("( cd %s/simple_repo ; mkdir somedir ; )", temp_dir);
 	simple_repo_create_file("somedir/dummy.dat","hello world");
 
-	ANBGitBridge anbGitBridge;
-	ANBGitBridgeError anbGitBridgeError;
-	init_bridge(&anbGitBridge);
 
-	anb_git_bridge_sync_files(&anbGitBridge, &anbGitBridgeError);
+	anb_git_bridge_sync_files(anbGitBridge, anbGitBridgeError);
 
 	cl_assert(simple_repo_contains("somedir/dummy.dat"));
 	cl_assert_equal_c('A', status_in_commit("simple_repo", "HEAD", "somedir/dummy.dat"));	
 }
 
 void test_core_sync__removes_deleted_files(void) {
-	create_simple_repo();
+	setupDefault();
 	simple_repo_delete_file("README.txt");
 
-	ANBGitBridge anbGitBridge;
-	ANBGitBridgeError anbGitBridgeError;
-	init_bridge(&anbGitBridge);
 
-	anb_git_bridge_sync_files(&anbGitBridge, &anbGitBridgeError);
+	anb_git_bridge_sync_files(anbGitBridge, anbGitBridgeError);
 
 	cl_assert(!simple_repo_contains("README.txt"));
 	cl_assert_equal_c('D', status_in_commit("simple_repo", "HEAD", "README.txt"));	
 }
 
 void test_core_sync__saves_modified_files(void) {
-	create_simple_repo();
-	ANBGitBridge anbGitBridge;
-	ANBGitBridgeError anbGitBridgeError;
-	init_bridge(&anbGitBridge);
+	setupDefault();
 	system_fmt("echo 'HelloAgain' >> %s/simple_repo/README.txt", temp_dir);
-	anb_git_bridge_sync_files(&anbGitBridge, &anbGitBridgeError);
+	anb_git_bridge_sync_files(anbGitBridge, anbGitBridgeError);
 	cl_assert_equal_c('M', status_in_commit("simple_repo", "HEAD", "README.txt"));	
 }
 
 void test_core_sync__gets_repo_from_bridge(void) {
-	create_repo("tofu");
+	setupTofu();
 	repo_create_file("tofu","dummy.dat","hello world");
 
-	ANBGitBridge anbGitBridge;
-	ANBGitBridgeError anbGitBridgeError;
-	init_bridge_with_repo(&anbGitBridge,"tofu");
-
-	anb_git_bridge_sync_files(&anbGitBridge, &anbGitBridgeError);
+	anb_git_bridge_sync_files(anbGitBridge, anbGitBridgeError);
 
 	cl_assert(repo_contains("tofu", "dummy.dat"));
 	cl_assert_equal_c('A', status_in_commit("tofu", "HEAD", "dummy.dat"));	
