@@ -11,7 +11,7 @@ int anb_git_bridge__error_translate(ANBGitBridgeError * error, const char * mess
 		error->error_code = 0;
 		error->error_code_git = 0;
 	}
-	if(errcode==GIT_ENOTFOUND) {
+	else if(errcode==GIT_ENOTFOUND) {
 		git_err_message = "remote not found.";
 		error->error_code = 1;
 		error->error_code_git = GIT_ENOTFOUND;
