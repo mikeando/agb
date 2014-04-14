@@ -4,6 +4,9 @@
 struct ANBGitBridge {
 	git_repository * repository;
 	const char * origin_name; // Usually "origin
+
+	ANBGitBridgeCallback fetch_callback;
+	void* fetch_callback_userdata;
 };
 
 struct ANBGitBridgeError {

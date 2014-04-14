@@ -8,6 +8,10 @@ static int update_cb(const char *refname, const git_oid *a, const git_oid *b, vo
 	return 0;
 }
 static int progress_cb(const char *str, int len, void *data) {
+	ANBGitBridge * anbGitBridge = (ANBGitBridge*)data;
+	if(anbGitBridge->fetch_callback) {
+		(*anbGitBridge->fetch_callback)(anbGitBridge->fetch_callback_userdata);
+	}
 	return 0;
 }
 
@@ -47,9 +51,8 @@ int anb_git_bridge_fetch(ANBGitBridge * anbGitBridge, ANBGitBridgeError * error)
 	callbacks.update_tips = &update_cb;
 	callbacks.progress = &progress_cb;
 	callbacks.credentials = cred_acquire_cb;
+	callbacks.payload = anbGitBridge;
 	git_remote_set_callbacks(remote, &callbacks);
-
-	const git_transfer_progress *stats = git_remote_stats(remote);
 
 	//TODO: Run this on a worker thread? Like in the fetch.c example
 
@@ -91,5 +94,11 @@ cleanup_error:
 	
 	if(remote) git_remote_free(remote);
 	return error->error_code;
+}
+
+int anb_git_bridge_set_fetch_callback(ANBGitBridge * anbGitBridge, ANBGitBridgeCallback fetch_callback, void * userdata, ANBGitBridgeError * error) {
+	anbGitBridge->fetch_callback = fetch_callback;
+	anbGitBridge->fetch_callback_userdata = userdata;
+	return 0;
 }
 
