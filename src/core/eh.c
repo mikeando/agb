@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 int anb_git_bridge__error_translate(ANBGitBridgeError * error, const char * message, int errcode) {
-	//TODO: Do something with the git error info and plug it into the error object
 	const char * git_err_message = NULL;
 	if(errcode==0) {
 		git_err_message = "no error.";
