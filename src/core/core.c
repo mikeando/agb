@@ -2,18 +2,24 @@
 #include "anbgitbridge/internal/types.h"
 #include <memory.h>
 
-//TODO: Handle allocation errors
 int anb_gitbridge_error_new( ANBGitBridgeError ** error ) {
-	*error = malloc(sizeof(ANBGitBridgeError));
-	memset(*error,0,sizeof(ANBGitBridgeError));
+	ANBGitBridgeError * p = malloc(sizeof(ANBGitBridgeError));
+
+	if(!p) return 1;
+	memset(p,0,sizeof(ANBGitBridgeError));
+
+	*error = p;
 	return 0;
 }
 
 int anb_gitbridge_bridge_new( ANBGitBridge ** anbGitBridge ) {
-	*anbGitBridge= malloc(sizeof(ANBGitBridge));
-	memset(*anbGitBridge,0,sizeof(ANBGitBridge));
-	return 0;
+	ANBGitBridge * p = malloc(sizeof(ANBGitBridge));
 
+	if(!p) return 1;
+	memset(p,0,sizeof(ANBGitBridge));
+
+	*anbGitBridge = p;
+	return 0;
 }
 
 int anb_gitbridge_error_delete( ANBGitBridgeError * error ) {
