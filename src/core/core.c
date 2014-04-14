@@ -23,6 +23,7 @@ int anb_gitbridge_bridge_new( ANBGitBridge ** anbGitBridge ) {
 }
 
 int anb_gitbridge_error_delete( ANBGitBridgeError * error ) {
+	free(error->message);
 	free(error);
 	return 0;
 }
