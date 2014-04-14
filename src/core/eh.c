@@ -34,6 +34,7 @@ int anb_git_bridge__error_translate(ANBGitBridgeError * error, const char * mess
 
 	char * fmt_mesg;
 	asprintf(&fmt_mesg, "%s : %s [git:%d]", message, git_err_message, errcode);
+	free(error->message);
 	error->message = fmt_mesg;
 	return (errcode==0)?0:1;
 }
