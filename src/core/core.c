@@ -18,10 +18,12 @@ int anb_gitbridge_bridge_new( ANBGitBridge ** anbGitBridge ) {
 
 int anb_gitbridge_error_delete( ANBGitBridgeError * error ) {
 	free(error);
+	return 0;
 }
 
 int anb_gitbridge_bridge_delete( ANBGitBridge * anbGitBridge ) {
 	free(anbGitBridge);
+	return 0;
 }
 
 const char * anb_gitbridge_error_message( const ANBGitBridgeError * error) {
