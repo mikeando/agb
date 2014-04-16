@@ -1,5 +1,6 @@
 typedef struct ANBGitBridge ANBGitBridge;
 typedef struct ANBGitBridgeError ANBGitBridgeError;
+typedef struct ANBGitBridgeMergeIterator ANBGitBridgeMergeIterator;
 
 typedef void(*ANBGitBridgeCallback)(void*);
 
@@ -15,3 +16,9 @@ int anb_gitbridge_bridge_new( ANBGitBridge ** error );
 int anb_gitbridge_error_delete( ANBGitBridgeError * error );
 int anb_gitbridge_bridge_delete( ANBGitBridge * error );
 const char * anb_gitbridge_error_message( const ANBGitBridgeError * error);
+
+
+//TODO: Move/rename me
+#include "git2.h"
+ANBGitBridgeMergeIterator * create_merge_iterator(git_tree * head_tree, git_tree * branch_tree, git_tree * base_tree);
+int anb_gitbridge_merge_iterator_free( ANBGitBridgeMergeIterator * it );

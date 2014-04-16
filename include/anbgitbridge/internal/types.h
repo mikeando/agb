@@ -15,3 +15,6 @@ struct ANBGitBridgeError {
 	int error_code;
 };
 
+struct ANBGitBridgeMergeIterator {
+};
+

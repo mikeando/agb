@@ -23,13 +23,18 @@ int anb_gitbridge_bridge_new( ANBGitBridge ** anbGitBridge ) {
 }
 
 int anb_gitbridge_error_delete( ANBGitBridgeError * error ) {
-	free(error->message);
+	free((char*)error->message);
 	free(error);
 	return 0;
 }
 
 int anb_gitbridge_bridge_delete( ANBGitBridge * anbGitBridge ) {
 	free(anbGitBridge);
+	return 0;
+}
+
+int anb_gitbridge_merge_iterator_free( ANBGitBridgeMergeIterator * it ) { 
+	free(it);
 	return 0;
 }
 
