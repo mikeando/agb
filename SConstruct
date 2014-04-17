@@ -24,3 +24,9 @@ Depends(clar_obj,File('tests/clar.suite'))
 
 test_src = [lib, test_utils_lib, clar_obj] + Glob('tests/*.c') + Glob('tests/core/*.c')
 test_env.Program('run_tests', test_src)
+
+util_env = env.Clone()
+util_env.Append( LIBS=['git2'] )
+util_env.Append( LIBPATH=['../../libgit2/build'] )
+
+get_commit_info = util_env.Program('utils/bin/get_commit_info', 'utils/src/get_commit_info.c')
