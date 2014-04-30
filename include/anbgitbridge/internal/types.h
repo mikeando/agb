@@ -15,6 +15,18 @@ struct ANBGitBridgeError {
 	int error_code;
 };
 
+typedef struct ANBGitBridgeMergeIteratorEntry {
+	const char * name;
+	const git_oid * ids[3];
+} ANBGitBridgeMergeIteratorEntry;
+
 struct ANBGitBridgeMergeIterator {
+	git_tree * head_tree;
+	git_tree * branch_tree;
+	git_tree * base_tree;
+
+	ANBGitBridgeMergeIteratorEntry * entries;
+	int n_entries;
+	int idx;
 };
 
