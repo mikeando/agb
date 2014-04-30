@@ -174,6 +174,8 @@ char status_in_commit(const char * repo_name, const char * commit_id, const char
 
 //TODO: This serves too many repos. But I couldn't get whitelisting them working 
 //      and its not worth digging for too long.
+//TODO: Take a nap and check it hasn't failed, and if its failed retry starting.
+//      This can happen when another test using that port has just completed.
 pid_t start_serving_repos(int port) {
 	char * cmd;
 	asprintf(&cmd,"git daemon --port=%d --base-path=%s --export-all", port, temp_dir);
