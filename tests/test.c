@@ -1,4 +1,4 @@
-#include "ANBGitBridge.h"
+#include "agb.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>

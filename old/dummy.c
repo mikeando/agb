@@ -1,16 +1,16 @@
-#include "ANBGitBridge.h"
+#include "agb.h"
 #include "git2.h"
 #include <stdio.h>
 
 void print_tree(git_repository * repo, const git_oid* tree_id, int indent);
 void print_history(const git_commit* commit);
 void find_merge_base_demo(git_repository * repo);
-int remote_test(ANBGitBridge* anbGitBridge, ANBGitBridgeError * e);
+int remote_test(AGBCore* anbGitBridge, AGBError * e);
 void example();
 
 int main() {
 
-	anb_git_bridge_init();
+	agb_init();
 
 	// Lets open ourselves a repo
 	//
@@ -50,17 +50,17 @@ int main() {
 
 	find_merge_base_demo(repo);
 
-	ANBGitBridge anbGitBridge;
+	AGBCore anbGitBridge;
 	anbGitBridge.repository = repo;
 	anbGitBridge.origin_name = "origin";
 
-	ANBGitBridgeError error;
-	anb_git_bridge_error_init(&error);
+	AGBError error;
+	agb_error_init(&error);
 	ok = remote_test(&anbGitBridge, &error);
 	if(ok!=0) {
 		printf("Error: %s\n", error.message);
 	}
-	anb_git_bridge_error_free(&error);
+	agb_error_free(&error);
 
 	git_repository_free(repo);
 
@@ -204,7 +204,7 @@ int cred_acquire_cb(git_cred **out,
 
 #include <stdarg.h>
 
-int error_message(ANBGitBridgeError * e, int code, const char * fmt, ...) {
+int error_message(AGBError * e, int code, const char * fmt, ...) {
 	if(e==NULL) return code;
 	if(e->message) free((void*)e->message);
 	va_list ap;
@@ -215,11 +215,11 @@ int error_message(ANBGitBridgeError * e, int code, const char * fmt, ...) {
 	return code;
 }
 
-void my_anb_git_bridge_callback( ANBGitBridgeError * e, void * userdata ) {
-	printf("In anb_git_bridge_callback( e = %p, userdata = %p )\n",e,userdata);
+void my_agb_callback( AGBError * e, void * userdata ) {
+	printf("In agb_callback( e = %p, userdata = %p )\n",e,userdata);
 }
 
-int remote_test(ANBGitBridge* anbGitBridge, ANBGitBridgeError * e) {
+int remote_test(AGBCore* anbGitBridge, AGBError * e) {
 
 	git_repository * repo = anbGitBridge->repository;
 	const char * origin_name = anbGitBridge->origin_name;
@@ -301,7 +301,7 @@ void example() {
 	int ok =  git_repository_open(&repo, "/Users/michaelanderson/Code/ANB/testDocRepos/test_repo/");
 	printf("git_repository_open returned %d\n", ok);
 
-	ANBGitBridge anbGitBridge;
+	AGBCore anbGitBridge;
 	anbGitBridge.repository = repo;
 	anbGitBridge.origin_name = "origin";
 

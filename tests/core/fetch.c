@@ -1,5 +1,5 @@
 #include "clar/clar.h"
-#include "anbgitbridge.h"
+#include "agb.h"
 #include "git2.h"
 
 #include "utils/test_utils.h"
@@ -11,14 +11,14 @@
 static int port=8090;
 static pid_t server_pid = 0;
 
-ANBGitBridge * anbGitBridge;
-ANBGitBridgeError * error ;
+AGBCore * anbGitBridge;
+AGBError * error ;
 
 void test_core_fetch__initialize(void) {
 	create_temp_dir();
 	server_pid = start_serving_repos(port);
 
-	anb_gitbridge_error_new(&error);
+	agb_error_new(&error);
 }
 
 void kill_server(void) {
@@ -33,8 +33,8 @@ void kill_server(void) {
 
 void test_core_fetch__cleanup(void) {
 	kill_server();
-	anb_gitbridge_bridge_delete(anbGitBridge);
-	anb_gitbridge_error_delete(error);
+	agb_bridge_delete(anbGitBridge);
+	agb_error_delete(error);
 }
 
 void create_remote_repo(void) {
@@ -47,7 +47,7 @@ void create_remote_repo(void) {
 void create_local_repo(void) {
 	create_repo("banana");
 	system_fmt("( cd %s/banana ; git remote add origin git://localhost:8090/banana_remote ; git commit -m'Adding banana' ; )", temp_dir );
-	anb_gitbridge_bridge_new(&anbGitBridge);
+	agb_bridge_new(&anbGitBridge);
 	init_bridge_with_repo(anbGitBridge,"banana");
 }
 
@@ -61,7 +61,7 @@ void test_core_fetch__works(void) {
 	create_local_repo();
 
 	cl_assert( !repo_contains("banana", "banana_fetched.txt"));
-	ok = anb_git_bridge_fetch(anbGitBridge, error);
+	ok = agb_fetch(anbGitBridge, error);
 	cl_assert_equal_i(0, ok);
 	cl_assert( !repo_contains("banana", "banana_fetched.txt"));
 	cl_assert_equal_c('A', status_in_commit("banana","origin/master","banana_fetched.txt"));
@@ -74,9 +74,9 @@ void test_core_fetch__reports_errors(void) {
 
 	kill_server();
 
-	ok = anb_git_bridge_fetch(anbGitBridge, error);
+	ok = agb_fetch(anbGitBridge, error);
 	cl_assert_equal_i(1, ok);
-	cl_assert_equal_s("git_remote_connect failed : Failed to connect to localhost: Connection refused [git:-1]", anb_gitbridge_error_message(error) );
+	cl_assert_equal_s("git_remote_connect failed : Failed to connect to localhost: Connection refused [git:-1]", agb_error_message(error) );
 }
 
 
@@ -92,11 +92,11 @@ void test_core_fetch__calls_callbacks(void) {
 	create_local_repo();
 
 	void * userdata = &ok;
-	ok = anb_git_bridge_set_fetch_callback(anbGitBridge, fetch_callback, userdata,error);
+	ok = agb_set_fetch_callback(anbGitBridge, fetch_callback, userdata,error);
 	cl_assert_equal_i(0, ok);
 
 	g_userdata = NULL;
-	ok = anb_git_bridge_fetch(anbGitBridge, error);
+	ok = agb_fetch(anbGitBridge, error);
 	cl_assert_equal_i(0, ok);
 	cl_assert_equal_p(userdata, g_userdata);
 }

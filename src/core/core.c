@@ -1,44 +1,44 @@
-#include "anbgitbridge.h"
-#include "anbgitbridge/internal/types.h"
+#include "agb.h"
+#include "agb/internal/types.h"
 #include <memory.h>
 
-int anb_gitbridge_error_new( ANBGitBridgeError ** error ) {
-	ANBGitBridgeError * p = malloc(sizeof(ANBGitBridgeError));
+int agb_error_new( AGBError ** error ) {
+	AGBError * p = malloc(sizeof(AGBError));
 
 	if(!p) return 1;
-	memset(p,0,sizeof(ANBGitBridgeError));
+	memset(p,0,sizeof(AGBError));
 
 	*error = p;
 	return 0;
 }
 
-int anb_gitbridge_bridge_new( ANBGitBridge ** anbGitBridge ) {
-	ANBGitBridge * p = malloc(sizeof(ANBGitBridge));
+int agb_bridge_new( AGBCore ** anbGitBridge ) {
+	AGBCore * p = malloc(sizeof(AGBCore));
 
 	if(!p) return 1;
-	memset(p,0,sizeof(ANBGitBridge));
+	memset(p,0,sizeof(AGBCore));
 
 	*anbGitBridge = p;
 	return 0;
 }
 
-int anb_gitbridge_error_delete( ANBGitBridgeError * error ) {
+int agb_error_delete( AGBError * error ) {
 	free((char*)error->message);
 	free(error);
 	return 0;
 }
 
-int anb_gitbridge_bridge_delete( ANBGitBridge * anbGitBridge ) {
+int agb_bridge_delete( AGBCore * anbGitBridge ) {
 	free(anbGitBridge);
 	return 0;
 }
 
-int anb_gitbridge_merge_iterator_free( ANBGitBridgeMergeIterator * it ) { 
+int agb_merge_iterator_free( AGBMergeIterator * it ) { 
 	free(it);
 	return 0;
 }
 
-const char * anb_gitbridge_error_message( const ANBGitBridgeError * error) {
+const char * agb_error_message( const AGBError * error) {
 	return error->message;
 }
 

@@ -1,5 +1,5 @@
 #include "clar/clar.h"
-#include "ANBGitBridge.h"
+#include "agb.h"
 #include "external/popen3.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -186,8 +186,8 @@ pid_t start_serving_repos(int port) {
 
 //TODO: This may be what we really move into the core library!
 #include "git2.h"
-#include "anbgitbridge/internal/types.h"
-void init_bridge_with_repo(ANBGitBridge* anbGitBridge, const char * repo_name) {
+#include "agb/internal/types.h"
+void init_bridge_with_repo(AGBCore* anbGitBridge, const char * repo_name) {
 
 	char * repo_path;
 	asprintf(&repo_path, "%s/%s", temp_dir, repo_name ); 
@@ -195,7 +195,7 @@ void init_bridge_with_repo(ANBGitBridge* anbGitBridge, const char * repo_name) {
 	anbGitBridge->origin_name = "origin";
 }
 
-void init_bridge(ANBGitBridge* anbGitBridge) {
+void init_bridge(AGBCore* anbGitBridge) {
 
 	char * repo_path;
 	asprintf(&repo_path, "%s/simple_repo", temp_dir ); 
@@ -204,6 +204,6 @@ void init_bridge(ANBGitBridge* anbGitBridge) {
 }
 
 
-void uninit_bridge(ANBGitBridge* anbGitBridge) {
+void uninit_bridge(AGBCore* anbGitBridge) {
 	git_repository_free(anbGitBridge->repository);
 }

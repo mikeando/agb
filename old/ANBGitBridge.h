@@ -3,28 +3,28 @@
 
 #include "git2.h"
 
-void anb_git_bridge_init();
+void agb_init();
 
 
-struct ANBGitBridge;
-typedef struct ANBGitBridge ANBGitBridge;
+struct AGBCore;
+typedef struct AGBCore AGBCore;
 
-struct ANBGitBridge {
+struct AGBCore {
 	git_repository * repository;
 	const char * origin_name; // Usually "origin
 };
 
-typedef struct ANBGitBridgeError {
+typedef struct AGBError {
 	const char * message;
 	int error_code;
-} ANBGitBridgeError;
+} AGBError;
 
-void anb_git_bridge_error_init(ANBGitBridgeError * e);
-void anb_git_bridge_error_free(ANBGitBridgeError * e);
+void agb_error_init(AGBError * e);
+void agb_error_free(AGBError * e);
 
 //Callback typedefs
 
-typedef void(*ANBGitBridgeFetchCallback)(ANBGitBridgeError*, void* userdata);
+typedef void(*AGBFetchCallback)(AGBError*, void* userdata);
 
 
 #endif

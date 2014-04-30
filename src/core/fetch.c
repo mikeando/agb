@@ -1,6 +1,6 @@
-#include "anbgitbridge.h"
-#include "anbgitbridge/internal/types.h"
-#include "anbgitbridge/internal/eh.h"
+#include "agb.h"
+#include "agb/internal/types.h"
+#include "agb/internal/eh.h"
 #include <stdio.h>
 
 
@@ -8,7 +8,7 @@ static int update_cb(const char *refname, const git_oid *a, const git_oid *b, vo
 	return 0;
 }
 static int progress_cb(const char *str, int len, void *data) {
-	ANBGitBridge * anbGitBridge = (ANBGitBridge*)data;
+	AGBCore * anbGitBridge = (AGBCore*)data;
 	if(anbGitBridge->fetch_callback) {
 		(*anbGitBridge->fetch_callback)(anbGitBridge->fetch_callback_userdata);
 	}
@@ -33,7 +33,7 @@ int cred_acquire_cb(git_cred **out,
 	return git_cred_userpass_plaintext_new(out, username, password);
 }
 
-int anb_git_bridge_fetch(ANBGitBridge * anbGitBridge, ANBGitBridgeError * error) {
+int agb_fetch(AGBCore * anbGitBridge, AGBError * error) {
 	git_repository * repo = anbGitBridge->repository;
 	const char * origin_name = anbGitBridge->origin_name;
 	int ok;
@@ -42,7 +42,7 @@ int anb_git_bridge_fetch(ANBGitBridge * anbGitBridge, ANBGitBridgeError * error)
 	git_remote * remote = NULL;
 	ok = git_remote_load(&remote, repo, origin_name);
 	if(ok!=0) {
-		anb_git_bridge__error_translate(error,"git_remote_load failed",ok);
+		agb__error_translate(error,"git_remote_load failed",ok);
 		goto cleanup_error;
 	}
 
@@ -61,7 +61,7 @@ int anb_git_bridge_fetch(ANBGitBridge * anbGitBridge, ANBGitBridgeError * error)
 	//
 	ok = git_remote_connect(remote, GIT_DIRECTION_FETCH);
 	if (ok!=0) {
-		anb_git_bridge__error_translate(error, "git_remote_connect failed",ok);
+		agb__error_translate(error, "git_remote_connect failed",ok);
 		goto cleanup_error;
 	}
 
@@ -70,7 +70,7 @@ int anb_git_bridge_fetch(ANBGitBridge * anbGitBridge, ANBGitBridgeError * error)
 	// inform the user about progress.
 	ok = git_remote_download(remote); 
 	if (ok!=0) {
-		anb_git_bridge__error_translate(error, "git_remote_download failed",ok);
+		agb__error_translate(error, "git_remote_download failed",ok);
 		goto cleanup_error;
 	}
 
@@ -83,7 +83,7 @@ int anb_git_bridge_fetch(ANBGitBridge * anbGitBridge, ANBGitBridgeError * error)
 	// changed but all the neede objects are available locally.
 	ok=git_remote_update_tips(remote, NULL, NULL);
 	if (ok!=0) {
-		anb_git_bridge__error_translate(error, "git_remote_download failed",ok);
+		agb__error_translate(error, "git_remote_download failed",ok);
 		goto cleanup_error;
 	}
 
@@ -96,7 +96,7 @@ cleanup_error:
 	return error->error_code;
 }
 
-int anb_git_bridge_set_fetch_callback(ANBGitBridge * anbGitBridge, ANBGitBridgeCallback fetch_callback, void * userdata, ANBGitBridgeError * error) {
+int agb_set_fetch_callback(AGBCore * anbGitBridge, AGBCallback fetch_callback, void * userdata, AGBError * error) {
 	anbGitBridge->fetch_callback = fetch_callback;
 	anbGitBridge->fetch_callback_userdata = userdata;
 	return 0;

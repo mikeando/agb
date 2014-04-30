@@ -77,7 +77,7 @@ char status_in_commit(const char * repo_name, const char * commit_id, const char
 
 pid_t start_serving_repos(int port);
 
-void init_bridge_with_repo(ANBGitBridge* anbGitBridge, const char * repo_name);
-void init_bridge(ANBGitBridge* anbGitBridge);
-void uninit_bridge(ANBGitBridge* anbGitBridge);
+void init_bridge_with_repo(AGBCore* anbGitBridge, const char * repo_name);
+void init_bridge(AGBCore* anbGitBridge);
+void uninit_bridge(AGBCore* anbGitBridge);
 

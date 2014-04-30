@@ -6,7 +6,7 @@
  */
 
 /**
- * What can we do with the ANBGitBridge?
+ * What can we do with the AGBCore?
  *
  * Fetch a remote branch
  *
@@ -19,7 +19,7 @@
  * Merge differences.
  */
 
-#include "ANBGitBridge.h"
+#include "AGBCore.h"
 
 //TODO: Mostly this is just to get NULL, maybe we can use a "smaller" include here instead.
 #include <stdlib.h>
@@ -29,51 +29,51 @@
 //Struct Forward declarations;
 
 #include "git2.h"
-typedef git_oid ANBGitBridgeID;
+typedef git_oid AGBID;
 
-struct ANBGitBridgeTree;
-typedef struct ANBGitBridgeTree ANBGitBridgeTree;
+struct AGBTree;
+typedef struct AGBTree AGBTree;
 
-struct ANBGitBridgeTreeEntry;
-typedef struct ANBGitBridgeTreeEntry ANBGitBridgeTreeEntry;
+struct AGBTreeEntry;
+typedef struct AGBTreeEntry AGBTreeEntry;
 
 
 
 
 //Not sure these should be callbacks, maybe structs instead?
-typedef void(*ANBGitBridgeTreeComparer)(char* name, int nEntries, ANBGitBridgeTreeEntry** entries, void* userdata);
+typedef void(*AGBTreeComparer)(char* name, int nEntries, AGBTreeEntry** entries, void* userdata);
 
 //Function declarations
-void ANBGitBridge_fetchRemote(ANBGitBridge* config, ANBGitBridgeFetchCallback callback);
-void ANBGitBridge_compare(ANBGitBridge* config, ANBGitBridgeTreeComparer * comparer, void * user_data);
-ANBGitBridgeTree * ANBGitBridge_getTree( ANBGitBridge* config, ANBGitBridgeID *treeID);
-void ANBGitBridge_releaseTree(ANBGitBridge* config, ANBGitBridgeTree* tree);
+void AGB_fetchRemote(AGBCore* config, AGBFetchCallback callback);
+void AGB_compare(AGBCore* config, AGBTreeComparer * comparer, void * user_data);
+AGBTree * AGB_getTree( AGBCore* config, AGBID *treeID);
+void AGB_releaseTree(AGBCore* config, AGBTree* tree);
 
 
-void ANBGitBridge_tree_compare(
-		ANBGitBridgeID ** treeids,
+void AGB_tree_compare(
+		AGBID ** treeids,
 		int nTrees,
-		ANBGitBridge* config,
-		ANBGitBridgeTreeComparer callback,
+		AGBCore* config,
+		AGBTreeComparer callback,
 		void * user_data);
 
 //Struct Definiations
 
-struct ANBGitBridgeTree {
+struct AGBTree {
 	int nEntries;
-	ANBGitBridgeTreeEntry * entries;
+	AGBTreeEntry * entries;
 };
 
-struct ANBGitBridgeTreeEntry {
+struct AGBTreeEntry {
 	char * name;
-	ANBGitBridgeID *id;
+	AGBID *id;
 };
 
 
 
 
 
-void anb_git_bridge_init() {
+void agb_init() {
 	git_threads_init();
 }
 
@@ -88,7 +88,7 @@ int atleastOneNotDone(int * treeIndices, int * nTreeElements, int nTrees) {
 	return FALSE;
 }
 
-char * getMinName(ANBGitBridgeTreeEntry ** entries, int nEntries) {
+char * getMinName(AGBTreeEntry ** entries, int nEntries) {
 	if(nEntries==0) return NULL;
 	char * minName = entries[0]->name;
 	for(int i=1; i<nEntries; ++i) {
@@ -99,7 +99,7 @@ char * getMinName(ANBGitBridgeTreeEntry ** entries, int nEntries) {
 	return minName;
 }
 
-void getEntriesNamed(ANBGitBridgeTreeEntry ** entries, int nEntries, char *name, ANBGitBridgeTreeEntry ** out_entries) {
+void getEntriesNamed(AGBTreeEntry ** entries, int nEntries, char *name, AGBTreeEntry ** out_entries) {
 	for(int i=0; i<nEntries; ++i) {
 		if(strcmp(entries[i]->name,name)==0) {
 			out_entries[i]=entries[i];
@@ -110,27 +110,27 @@ void getEntriesNamed(ANBGitBridgeTreeEntry ** entries, int nEntries, char *name,
 }
 
 //TODO: This is probably an OK spot to start using libgit2 internals
-void ANBGitBridge_tree_compare(
-		ANBGitBridgeID ** treeids,
+void AGB_tree_compare(
+		AGBID ** treeids,
 		int nTrees,
-		ANBGitBridge* config,
-		ANBGitBridgeTreeComparer callback,
+		AGBCore* config,
+		AGBTreeComparer callback,
 		void * user_data) {
 
-	ANBGitBridgeTree ** trees = (ANBGitBridgeTree**)malloc(sizeof(ANBGitBridgeTree*)*nTrees);
+	AGBTree ** trees = (AGBTree**)malloc(sizeof(AGBTree*)*nTrees);
 	int* treeIndices = (int*)malloc(sizeof(int)*nTrees);
 	int* nTreeElements = (int*)malloc(sizeof(int)*nTrees);
 
 	//These are trees[i].entries[ treeIndices[i] ] or NULL;
-	ANBGitBridgeTreeEntry ** curTreeEntries = (ANBGitBridgeTreeEntry**)malloc(sizeof(ANBGitBridgeTreeEntry*)*nTrees);
+	AGBTreeEntry ** curTreeEntries = (AGBTreeEntry**)malloc(sizeof(AGBTreeEntry*)*nTrees);
 
 	//These are the tree entries in curTreeEntries with the minimum name.
-	ANBGitBridgeTreeEntry ** treeEntries = (ANBGitBridgeTreeEntry**)malloc(sizeof(ANBGitBridgeTreeEntry*)*nTrees);
+	AGBTreeEntry ** treeEntries = (AGBTreeEntry**)malloc(sizeof(AGBTreeEntry*)*nTrees);
 
 	//Initialize the curTreeEntries
 	int i;
 	for(i=0; i<nTrees; ++i) {
-		trees[i] = ANBGitBridge_getTree(config,treeids[i]);
+		trees[i] = AGB_getTree(config,treeids[i]);
 		treeIndices[i] = 0;
 		nTreeElements[i] = trees[i]->nEntries;
 		if(nTreeElements[i]>0) {
@@ -148,9 +148,9 @@ void ANBGitBridge_tree_compare(
 	}
 
 
-	//The  ANBGitBridgeTreeEntry values are owned by the trees. So we only need to release the trees
+	//The  AGBTreeEntry values are owned by the trees. So we only need to release the trees
 	for(i=0;i<nTrees;++i) {
-		ANBGitBridge_releaseTree(config,trees[i]);
+		AGB_releaseTree(config,trees[i]);
 	}
 
 	free(trees);
@@ -168,10 +168,10 @@ typedef struct my_3_merge_callback_data {
 
 
 //TODO: Implement these
-void keep(char * name, ANBGitBridgeTreeEntry* entry) { }
+void keep(char * name, AGBTreeEntry* entry) { }
 void conflict(char * name) { }
 
-int are_same(ANBGitBridgeTreeEntry* e1, ANBGitBridgeTreeEntry * e2) {
+int are_same(AGBTreeEntry* e1, AGBTreeEntry * e2) {
 
 	if(e1==NULL && e2==NULL) {
 		return 1;
@@ -184,7 +184,7 @@ int are_same(ANBGitBridgeTreeEntry* e1, ANBGitBridgeTreeEntry * e2) {
 	return git_oid_equal(e1->id, e2->id);
 }
 
-void my_3_merge_callback(char * name, int nEntries, ANBGitBridgeTreeEntry** entries, void * user_data) {
+void my_3_merge_callback(char * name, int nEntries, AGBTreeEntry** entries, void * user_data) {
 	assert(nEntries=3);
 
 	if( !are_same(entries[0],entries[2] ) ) {
@@ -229,43 +229,43 @@ void my_3_merge_callback(char * name, int nEntries, ANBGitBridgeTreeEntry** entr
 
 
 //TODO: Move & implement this
-ANBGitBridgeID* ANBGitBridge_findCommonRoot(ANBGitBridgeID * branch1, ANBGitBridgeID * branch2);
+AGBID* AGB_findCommonRoot(AGBID * branch1, AGBID * branch2);
 
-void MyMerge(ANBGitBridge * config, ANBGitBridgeID * mine, ANBGitBridgeID * theirs) {
-	ANBGitBridgeID * rootID = ANBGitBridge_findCommonRoot(mine,theirs);
+void MyMerge(AGBCore * config, AGBID * mine, AGBID * theirs) {
+	AGBID * rootID = AGB_findCommonRoot(mine,theirs);
 	if(rootID==NULL) {
 		//Can't merge no common ancestor?
 		//Or fall back to a two head merge
 		return;
 	}
 
-	ANBGitBridgeID* ids[3] = {mine, theirs, rootID};
+	AGBID* ids[3] = {mine, theirs, rootID};
 
 	my_3_merge_callback_data data;
 
-	ANBGitBridge_tree_compare(ids, 3, config, my_3_merge_callback, &data);
+	AGB_tree_compare(ids, 3, config, my_3_merge_callback, &data);
 }
 
 //TODO: Implement me
-ANBGitBridgeTree * ANBGitBridge_getTree( ANBGitBridge* config, ANBGitBridgeID *treeID){
+AGBTree * AGB_getTree( AGBCore* config, AGBID *treeID){
 	return NULL;
 }
 
 //TODO: Implement me
-void ANBGitBridge_releaseTree(ANBGitBridge* config, ANBGitBridgeTree* tree) {
+void AGB_releaseTree(AGBCore* config, AGBTree* tree) {
 }
 
 //TODO: Implement me
-ANBGitBridgeID* ANBGitBridge_findCommonRoot(ANBGitBridgeID * branch1, ANBGitBridgeID * branch2) {
+AGBID* AGB_findCommonRoot(AGBID * branch1, AGBID * branch2) {
 	return NULL;
 }
 
-void anb_git_bridge_error_init(ANBGitBridgeError * e) {
+void agb_error_init(AGBError * e) {
 	e->error_code = 0;
 	e->message = NULL;
 }
 
-void anb_git_bridge_error_free(ANBGitBridgeError * e) {
+void agb_error_free(AGBError * e) {
 	free((void*)e->message);
 }
 

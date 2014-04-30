@@ -1,31 +1,31 @@
 #pragma once
 #include "git2.h"
 
-struct ANBGitBridge {
+struct AGBCore {
 	git_repository * repository;
 	const char * origin_name; // Usually "origin
 
-	ANBGitBridgeCallback fetch_callback;
+	AGBCallback fetch_callback;
 	void* fetch_callback_userdata;
 };
 
-struct ANBGitBridgeError {
+struct AGBError {
 	const char * message;
 	int error_code_git;
 	int error_code;
 };
 
-typedef struct ANBGitBridgeMergeIteratorEntry {
+typedef struct AGBMergeIteratorEntry {
 	const char * name;
 	const git_oid * ids[3];
-} ANBGitBridgeMergeIteratorEntry;
+} AGBMergeIteratorEntry;
 
-struct ANBGitBridgeMergeIterator {
+struct AGBMergeIterator {
 	git_tree * head_tree;
 	git_tree * branch_tree;
 	git_tree * base_tree;
 
-	ANBGitBridgeMergeIteratorEntry * entries;
+	AGBMergeIteratorEntry * entries;
 	int n_entries;
 	int idx;
 };

@@ -1,9 +1,9 @@
-#include "anbgitbridge.h"
-#include "anbgitbridge/internal/eh.h"
-#include "anbgitbridge/internal/types.h"
+#include "agb.h"
+#include "agb/internal/eh.h"
+#include "agb/internal/types.h"
 #include <stdio.h>
 
-int anb_git_bridge__error_translate(ANBGitBridgeError * error, const char * message, int errcode) {
+int agb__error_translate(AGBError * error, const char * message, int errcode) {
 	const char * git_err_message = NULL;
 	if(errcode==0) {
 		git_err_message = "no error.";
