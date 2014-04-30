@@ -7,7 +7,9 @@
 * [ ] Comparing current status ( Staged/Changes, and vs remote version of current branch )
 * [ ] Push
 * [ ] Merge
-* [ ] Fetch - config to determine which remote to fetch from
-* [ ] Fetch - callback support for progress etc.
-* [ ] Fetch - error handling
+* [X] Fetch - callback support for progress etc.
+* [X] Fetch - error handling
 * [ ] Authentication & SSH connections.
+
+# TODO Later
+* [ ] Fetch - config to determine which remote to fetch from (allow remote other than origin)
