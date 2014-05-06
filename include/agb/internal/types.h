@@ -17,13 +17,13 @@ struct AGBError {
 
 typedef struct AGBMergeIteratorEntry {
 	const char * name;
-	const git_oid * ids[3];
+	const git_tree_entry * treeentries[3];
 } AGBMergeIteratorEntry;
 
 struct AGBMergeIterator {
-	git_tree * head_tree;
-	git_tree * branch_tree;
-	git_tree * base_tree;
+	const git_tree * head_tree;
+	const git_tree * branch_tree;
+	const git_tree * base_tree;
 
 	AGBMergeIteratorEntry * entries;
 	int n_entries;

@@ -24,7 +24,7 @@ const char * agb_error_message( const AGBError * error);
 static const uint32_t agb_merge_iterator_options_NONE = 0;
 static const uint32_t agb_merge_iterator_options_ALL_ENTRIES  = 1;
 
-AGBMergeIterator * create_merge_iterator(git_tree * head_tree, git_tree * branch_tree, git_tree * base_tree, uint32_t merge_iterator_options);
+AGBMergeIterator * create_merge_iterator(const git_tree * head_tree, const git_tree * branch_tree, const git_tree * base_tree, uint32_t merge_iterator_options);
 int agb_merge_iterator_free( AGBMergeIterator * it );
 const git_oid * agb_merge_iterator_head_id( AGBMergeIterator * it);
 const git_oid * agb_merge_iterator_branch_id( AGBMergeIterator * it);
@@ -33,6 +33,9 @@ const char * agb_merge_iterator_entry_name( AGBMergeIterator * it);
 const git_oid * agb_merge_iterator_head_entry_id( AGBMergeIterator * it);
 const git_oid * agb_merge_iterator_branch_entry_id( AGBMergeIterator * it);
 const git_oid * agb_merge_iterator_base_entry_id( AGBMergeIterator * it);
+git_filemode_t agb_merge_iterator_head_filemode( AGBMergeIterator * it);
+git_filemode_t agb_merge_iterator_branch_filemode( AGBMergeIterator * it);
+git_filemode_t agb_merge_iterator_base_filemode( AGBMergeIterator * it);
 
 int agb_merge_iterator_next( AGBMergeIterator * it);
 int agb_merge_iterator_is_valid( AGBMergeIterator * it);

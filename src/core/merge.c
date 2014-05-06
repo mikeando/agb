@@ -11,22 +11,33 @@ int sort_entries(const void * e1r, const void * e2r) {
 	return strcmp(e1->name, e2->name);
 }
 
-int copy_entries(AGBMergeIteratorEntry * entries, git_tree * tree, int idx) {
+int copy_entries(AGBMergeIteratorEntry * entries, const git_tree * tree, int idx) {
 	int n = git_tree_entrycount(tree);
 	int i;
 	for(i=0; i<n; ++i) {
 		const git_tree_entry * gte = git_tree_entry_byindex(tree,i);
 		entries[i].name = git_tree_entry_name(gte);
-		entries[i].ids[idx] = git_tree_entry_id(gte);
+		entries[i].treeentries[idx] = gte;
 	}
 	return n;
 }
 
-//A NULL safe git_oid_equal
-static inline int agb_git_oid_equal(const git_oid * oid_a, const git_oid * oid_b ) {
-	if(oid_a==NULL && oid_b==NULL) return 1;
-	if(oid_a==NULL || oid_b==NULL) return 0;
+static inline int agb_git_tree_entry_equal(const git_tree_entry * tree_a, const git_tree_entry * tree_b ) {
+	if(tree_a==NULL && tree_b==NULL) return 1;
+	if(tree_a==NULL || tree_b==NULL) return 0;
+	const git_oid * oid_a = git_tree_entry_id(tree_a);
+	const git_oid * oid_b = git_tree_entry_id(tree_b);
 	return git_oid_equal(oid_a,oid_b);
+}
+
+static inline const git_oid * agb_git_tree_entry_id(const git_tree_entry * tree) {
+	if(!tree) return NULL;
+	return git_tree_entry_id(tree);
+}
+
+static inline git_filemode_t agb_git_tree_entry_filemode(const git_tree_entry * tree) {
+	if(!tree) return 0;
+	return git_tree_entry_filemode(tree);
 }
 
 /*
@@ -49,7 +60,7 @@ void debug_dump_me(AGBMergeIteratorEntry * entries, int count) {
 */
 
 
-AGBMergeIterator * create_merge_iterator(git_tree * head_tree, git_tree * branch_tree, git_tree * base_tree, uint32_t merge_iterator_options ) {
+AGBMergeIterator * create_merge_iterator(const git_tree * head_tree, const git_tree * branch_tree, const git_tree * base_tree, uint32_t merge_iterator_options ) {
 
 	if(!head_tree) return NULL;	
 	if(!branch_tree) return NULL;	
@@ -92,8 +103,8 @@ AGBMergeIterator * create_merge_iterator(git_tree * head_tree, git_tree * branch
 	for(int i=0; i<n_entries; ++i) {
 		if(strcmp(read_point->name,write_point->name)==0) {
 			for(int j=0; j<3; ++j) {
-				if(read_point->ids[j]!=NULL) {
-					write_point->ids[j]=read_point->ids[j];
+				if(read_point->treeentries[j]!=NULL) {
+					write_point->treeentries[j]=read_point->treeentries[j];
 				}
 			}
 			read_point++;
@@ -121,8 +132,8 @@ AGBMergeIterator * create_merge_iterator(git_tree * head_tree, git_tree * branch
 			if( // Something changed
 					//git_oid_equal dies on NULL...
 
-					agb_git_oid_equal(read_point->ids[0], read_point->ids[1])==0 ||
-					agb_git_oid_equal(read_point->ids[1], read_point->ids[2])==0 
+					agb_git_tree_entry_equal(read_point->treeentries[0], read_point->treeentries[1])==0 ||
+					agb_git_tree_entry_equal(read_point->treeentries[1], read_point->treeentries[2])==0 
 			  ) {
 				if(read_point!=write_point) {
 					memcpy(write_point,read_point,sizeof(AGBMergeIteratorEntry));
@@ -230,12 +241,21 @@ const char * agb_merge_iterator_entry_name( AGBMergeIterator * it) {
        return it->entries[it->idx].name;
 }       
 const git_oid * agb_merge_iterator_base_entry_id( AGBMergeIterator * it) {
-	return it->entries[it->idx].ids[2];
+	return agb_git_tree_entry_id(it->entries[it->idx].treeentries[2]);
 }
 const git_oid * agb_merge_iterator_branch_entry_id( AGBMergeIterator * it) {
-       return it->entries[it->idx].ids[1];
+       return agb_git_tree_entry_id(it->entries[it->idx].treeentries[1]);
 }       
 const git_oid * agb_merge_iterator_head_entry_id( AGBMergeIterator * it) {
-	return it->entries[it->idx].ids[0];
+       return agb_git_tree_entry_id(it->entries[it->idx].treeentries[0]);
 }
 
+git_filemode_t agb_merge_iterator_base_filemode( AGBMergeIterator * it) {
+	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[2]);
+}
+git_filemode_t agb_merge_iterator_branch_filemode( AGBMergeIterator * it) {
+	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[1]);
+}       
+git_filemode_t agb_merge_iterator_head_filemode( AGBMergeIterator * it) {
+	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[0]);
+}
