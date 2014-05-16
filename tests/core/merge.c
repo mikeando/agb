@@ -68,15 +68,17 @@ void test_core_merge__cleanup(void) {
 
 	// Validate the repo... (We were/are getting bad git fsck output and corrupted directories etc .. which is v. bad.)
 	//
+	/*
 	int old_g_debug = g_debug;
 	g_debug=1;
 	int ok = system_fmt("( cd %s ; git fsck --full --strict )", REPODIR);
 	g_debug = old_g_debug;
 	printf("git fsck returned %d\n",ok);
+	*/
 }
 
 void test_core_merge__basic_iterator(void) {
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 	cl_assert(it!=NULL);
 
 	// Since everything should be sorted alphabetically our first entry in the iterator should be
@@ -85,9 +87,9 @@ void test_core_merge__basic_iterator(void) {
 	char hexid[GIT_OID_HEXSZ+1] = {0};
 	char hexid2[GIT_OID_HEXSZ+1] = {0};
 	
-	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(head_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_id(it)));
-	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(branch_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_id(it)));
-	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(base_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_base_id(it)));
+	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(head_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_tree_id(it,0)));
+	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(branch_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_tree_id(it,1)));
+	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(base_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_tree_id(it,2)));
 
 	//TODO: How do we handle the case with zero entries.
 	//We probably need a agb_merge_iterator_is_valid(it)
@@ -95,22 +97,22 @@ void test_core_merge__basic_iterator(void) {
 	//
 	//
 	cl_assert_equal_s("created_in_a.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_s("6a8f9dc8fbbc0a9c632ff7f58b419ab09f7d49d9", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_entry_id(it)));
-	cl_assert_equal_p(NULL, agb_merge_iterator_branch_entry_id(it));
-	cl_assert_equal_p(NULL, agb_merge_iterator_base_entry_id(it));
+	cl_assert_equal_s("6a8f9dc8fbbc0a9c632ff7f58b419ab09f7d49d9", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,0)));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,1));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,2));
 
 	cl_assert_equal_i(0, agb_merge_iterator_next(it) );
 	cl_assert_equal_s("created_in_b.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_p(NULL, agb_merge_iterator_head_entry_id(it));
-	cl_assert_equal_s("21a97ca7942380e581d314d80aed559be2150219", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_entry_id(it)));
-	cl_assert_equal_p(NULL, agb_merge_iterator_base_entry_id(it));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,0));
+	cl_assert_equal_s("21a97ca7942380e581d314d80aed559be2150219", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,1)));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,2));
 
 	cl_assert_equal_i(1, agb_merge_iterator_next(it) );
 
 	agb_merge_iterator_free(it);
 }
 void test_core_merge__basic_iterator_looping(void) {
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 	cl_assert(it!=NULL);
 
 	const char * filenames[]={"created_in_a.txt","created_in_b.txt","SENTINEL"};
@@ -124,7 +126,7 @@ void test_core_merge__basic_iterator_looping(void) {
 
 
 void test_core_merge__basic_iterator_all(void) {
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_ALL_ENTRIES);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_ALL_ENTRIES);
 	cl_assert(it!=NULL);
 
 	// Since everything should be sorted alphabetically our first entry in the iterator should be
@@ -133,38 +135,38 @@ void test_core_merge__basic_iterator_all(void) {
 	char hexid[GIT_OID_HEXSZ+1] = {0};
 	char hexid2[GIT_OID_HEXSZ+1] = {0};
 	
-	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(head_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_id(it)));
-	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(branch_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_id(it)));
-	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(base_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_base_id(it)));
+	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(head_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_tree_id(it,0)));
+	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(branch_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_tree_id(it,1)));
+	cl_assert_equal_s(git_oid_tostr(hexid2, GIT_OID_HEXSZ+1, git_tree_id(base_tree)), git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_tree_id(it,2)));
 
 	cl_assert_equal_s("README.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_s("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_entry_id(it)));
-	cl_assert_equal_s("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_entry_id(it)));
-	cl_assert_equal_s("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_base_entry_id(it)));
+	cl_assert_equal_s("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,0)));
+	cl_assert_equal_s("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,1)));
+	cl_assert_equal_s("e69de29bb2d1d6434b8b29ae775ad8c2e48c5391", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,2)));
 
 	cl_assert_equal_i(0, agb_merge_iterator_next(it) );
 	cl_assert_equal_s("created_in_a.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_s("6a8f9dc8fbbc0a9c632ff7f58b419ab09f7d49d9", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_entry_id(it)));
-	cl_assert_equal_p(NULL, agb_merge_iterator_branch_entry_id(it));
-	cl_assert_equal_p(NULL, agb_merge_iterator_base_entry_id(it));
+	cl_assert_equal_s("6a8f9dc8fbbc0a9c632ff7f58b419ab09f7d49d9", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,0)));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,1));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,2));
 
 	cl_assert_equal_i(0, agb_merge_iterator_next(it) );
 	cl_assert_equal_s("created_in_b.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_p(NULL, agb_merge_iterator_head_entry_id(it));
-	cl_assert_equal_s("21a97ca7942380e581d314d80aed559be2150219", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_entry_id(it)));
-	cl_assert_equal_p(NULL, agb_merge_iterator_base_entry_id(it));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,0));
+	cl_assert_equal_s("21a97ca7942380e581d314d80aed559be2150219", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,1)));
+	cl_assert_equal_p(NULL, agb_merge_iterator_entry_id(it,2));
 
 	cl_assert_equal_i(0, agb_merge_iterator_next(it) );
 	cl_assert_equal_s("created_in_root.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_entry_id(it)));
-	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_entry_id(it)));
-	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_base_entry_id(it)));
+	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,0)));
+	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,1)));
+	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,2)));
 
 	cl_assert_equal_i(0, agb_merge_iterator_next(it) );
 	cl_assert_equal_s("created_in_root_2.txt", agb_merge_iterator_entry_name(it));
-	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_head_entry_id(it)));
-	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_branch_entry_id(it)));
-	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_base_entry_id(it)));
+	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,0)));
+	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,1)));
+	cl_assert_equal_s("0867712ecec02144b5bf4ee2a59deb0f42b49a53", git_oid_tostr(hexid,GIT_OID_HEXSZ+1,agb_merge_iterator_entry_id(it,2)));
 
 	cl_assert_equal_i(1, agb_merge_iterator_next(it) );
 
@@ -176,7 +178,7 @@ void test_core_merge__null_head(void) {
 
 	head_tree = NULL; 
 
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 	cl_assert(it==NULL);
 }
 
@@ -185,7 +187,7 @@ void test_core_merge__null_branch(void) {
 
 	branch_tree = NULL; 
 
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 	cl_assert(it==NULL);
 }
 
@@ -194,7 +196,7 @@ void test_core_merge__null_base(void) {
 
 	base_tree = NULL; 
 
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 	cl_assert(it==NULL);
 }
 
@@ -216,11 +218,11 @@ void test_core_merge__demo_create_merge_commit(void) {
 	// Note - this version does not recurse into directories. (subtrees)
 	git_treebuilder * builder;
 	git_treebuilder_create(&builder, base_tree);
-	AGBMergeIterator * it = create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	AGBMergeIterator * it = agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 
 	for( ; agb_merge_iterator_is_valid(it) ; agb_merge_iterator_next(it) ) {
-		int hasHeadChanged = !agb_git_oid_equal( agb_merge_iterator_base_entry_id(it), agb_merge_iterator_head_entry_id(it) );
-		int hasBranchChanged = !agb_git_oid_equal( agb_merge_iterator_base_entry_id(it), agb_merge_iterator_branch_entry_id(it) );
+		int hasHeadChanged = !agb_git_oid_equal( agb_merge_iterator_entry_id(it,2), agb_merge_iterator_entry_id(it,0) );
+		int hasBranchChanged = !agb_git_oid_equal( agb_merge_iterator_entry_id(it,2), agb_merge_iterator_entry_id(it,1) );
 		printf("-- %s %d %d\n", agb_merge_iterator_entry_name(it), hasHeadChanged, hasBranchChanged);
 
 		if( !hasHeadChanged && !hasBranchChanged ) {
@@ -229,7 +231,7 @@ void test_core_merge__demo_create_merge_commit(void) {
 
 		if( hasHeadChanged && !hasBranchChanged ) { 
 			//We want the head version.
-			if(agb_merge_iterator_head_entry_id(it) == NULL) {
+			if(agb_merge_iterator_entry_id(it,0) == NULL) {
 				//TODO: Check error message.
 				printf("REMOVING %s from tree\n", agb_merge_iterator_entry_name(it) );
 				git_treebuilder_remove(builder, agb_merge_iterator_entry_name(it) );
@@ -238,13 +240,13 @@ void test_core_merge__demo_create_merge_commit(void) {
 
 			//TODO: Check for error
 			printf("ADDING OR UPDATING %s to tree\n", agb_merge_iterator_entry_name(it) );
-			git_treebuilder_insert(NULL, builder, agb_merge_iterator_entry_name(it), agb_merge_iterator_head_entry_id(it), agb_merge_iterator_head_filemode(it) );
+			git_treebuilder_insert(NULL, builder, agb_merge_iterator_entry_name(it), agb_merge_iterator_entry_id(it,0), agb_merge_iterator_entry_filemode(it,0) );
 			continue;
 		}
 
 		if( !hasHeadChanged && hasBranchChanged ) { 
 			//We want the head version.
-			if(agb_merge_iterator_branch_entry_id(it) == NULL) {
+			if(agb_merge_iterator_entry_id(it,1) == NULL) {
 				//TODO: Check error message.
 				printf("REMOVING %s from tree\n", agb_merge_iterator_entry_name(it) );
 				git_treebuilder_remove(builder, agb_merge_iterator_entry_name(it) );
@@ -253,7 +255,8 @@ void test_core_merge__demo_create_merge_commit(void) {
 
 			//TODO: Check for error
 			printf("ADDING OR UPDATING %s to tree\n", agb_merge_iterator_entry_name(it) );
-			git_treebuilder_insert(NULL, builder, agb_merge_iterator_entry_name(it), agb_merge_iterator_branch_entry_id(it), agb_merge_iterator_branch_filemode(it) );
+			git_treebuilder_insert(NULL, builder, agb_merge_iterator_entry_name(it), agb_merge_iterator_entry_id(it,1), agb_merge_iterator_entry_filemode(it,1) );
+			continue;
 		}
 
 			printf("CONFLICT %s in tree\n", agb_merge_iterator_entry_name(it) );

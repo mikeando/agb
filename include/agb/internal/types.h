@@ -21,10 +21,7 @@ typedef struct AGBMergeIteratorEntry {
 } AGBMergeIteratorEntry;
 
 struct AGBMergeIterator {
-	const git_tree * head_tree;
-	const git_tree * branch_tree;
-	const git_tree * base_tree;
-
+	const git_tree * trees[3];
 	AGBMergeIteratorEntry * entries;
 	int n_entries;
 	int idx;

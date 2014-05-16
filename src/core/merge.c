@@ -60,7 +60,7 @@ void debug_dump_me(AGBMergeIteratorEntry * entries, int count) {
 */
 
 
-AGBMergeIterator * create_merge_iterator(const git_tree * head_tree, const git_tree * branch_tree, const git_tree * base_tree, uint32_t merge_iterator_options ) {
+AGBMergeIterator * agb_merge__create_iterator(const git_tree * head_tree, const git_tree * branch_tree, const git_tree * base_tree, uint32_t merge_iterator_options ) {
 
 	if(!head_tree) return NULL;	
 	if(!branch_tree) return NULL;	
@@ -162,9 +162,9 @@ AGBMergeIterator * create_merge_iterator(const git_tree * head_tree, const git_t
 
 	AGBMergeIterator * retval = (AGBMergeIterator*)malloc(sizeof(AGBMergeIterator));
 	memset(retval,0, sizeof(AGBMergeIterator));
-	retval->head_tree = head_tree;
-	retval->branch_tree = branch_tree;
-	retval->base_tree = base_tree;
+	retval->trees[0] = head_tree;
+	retval->trees[1] = branch_tree;
+	retval->trees[2] = base_tree;
 
 
 	retval->entries = merged_entries;
@@ -224,38 +224,21 @@ AGBMergeIterator * merge( AGBCore * anbGitBridge, AGBError * error ) {
 	commit_oid_to_tree(&base_tree, repo, &base_oid);
 
 
-	return create_merge_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	return agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
 }
 
-const git_oid * agb_merge_iterator_base_id( AGBMergeIterator * it) {
-	return git_tree_id(it->base_tree);
-}
-const git_oid * agb_merge_iterator_branch_id( AGBMergeIterator * it) {
-       return git_tree_id(it->branch_tree);
-}       
-const git_oid * agb_merge_iterator_head_id( AGBMergeIterator * it) {
-	return git_tree_id(it->head_tree);
+const git_oid * agb_merge_iterator_tree_id( AGBMergeIterator * it, int idx) {
+	return git_tree_id(it->trees[idx]);
 }
 
 const char * agb_merge_iterator_entry_name( AGBMergeIterator * it) {
        return it->entries[it->idx].name;
-}       
-const git_oid * agb_merge_iterator_base_entry_id( AGBMergeIterator * it) {
-	return agb_git_tree_entry_id(it->entries[it->idx].treeentries[2]);
-}
-const git_oid * agb_merge_iterator_branch_entry_id( AGBMergeIterator * it) {
-       return agb_git_tree_entry_id(it->entries[it->idx].treeentries[1]);
-}       
-const git_oid * agb_merge_iterator_head_entry_id( AGBMergeIterator * it) {
-       return agb_git_tree_entry_id(it->entries[it->idx].treeentries[0]);
 }
 
-git_filemode_t agb_merge_iterator_base_filemode( AGBMergeIterator * it) {
-	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[2]);
+const git_oid * agb_merge_iterator_entry_id( AGBMergeIterator * it, int idx) {
+	return agb_git_tree_entry_id(it->entries[it->idx].treeentries[idx]);
 }
-git_filemode_t agb_merge_iterator_branch_filemode( AGBMergeIterator * it) {
-	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[1]);
-}       
-git_filemode_t agb_merge_iterator_head_filemode( AGBMergeIterator * it) {
-	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[0]);
+git_filemode_t agb_merge_iterator_entry_filemode( AGBMergeIterator * it, int idx) {
+	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[idx]);
 }
+
