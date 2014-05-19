@@ -33,10 +33,10 @@ agb_merge__create_iterator(
 		uint32_t merge_iterator_options);
 int agb_merge_iterator_free( AGBMergeIterator * it );
 
-const git_oid * agb_merge_iterator_tree_id( AGBMergeIterator * it, int i);
-const char * agb_merge_iterator_entry_name( AGBMergeIterator * it);
-const git_oid * agb_merge_iterator_entry_id( AGBMergeIterator * it, int i);
-git_filemode_t agb_merge_iterator_entry_filemode( AGBMergeIterator * it, int i);
+const git_oid * agb_merge_iterator_tree_id( const AGBMergeIterator * it, int i);
+const char * agb_merge_iterator_entry_name( const AGBMergeIterator * it);
+const git_oid * agb_merge_iterator_entry_id( const AGBMergeIterator * it, int i);
+git_filemode_t agb_merge_iterator_entry_filemode( const AGBMergeIterator * it, int i);
 
 int agb_merge_iterator_next( AGBMergeIterator * it);
-int agb_merge_iterator_is_valid( AGBMergeIterator * it);
+int agb_merge_iterator_is_valid( const AGBMergeIterator * it);
