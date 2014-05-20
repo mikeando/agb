@@ -7,8 +7,9 @@
 static int update_cb(const char *refname, const git_oid *a, const git_oid *b, void *data) {
 	return 0;
 }
-static int progress_cb(const char *str, int len, void *data) {
-	AGBCore * anbGitBridge = (AGBCore*)data;
+/* TODO: Do something with the data parameter */
+static int progress_cb(const git_transfer_progress *data, void *userdata) {
+	AGBCore * anbGitBridge = (AGBCore*)userdata;
 	if(anbGitBridge->fetch_callback) {
 		(*anbGitBridge->fetch_callback)(anbGitBridge->fetch_callback_userdata);
 	}
@@ -49,7 +50,7 @@ int agb_fetch(AGBCore * anbGitBridge, AGBError * error) {
 	// Set up the callbacks (only update_tips for now)
 	git_remote_callbacks callbacks = GIT_REMOTE_CALLBACKS_INIT;
 	callbacks.update_tips = &update_cb;
-	callbacks.progress = &progress_cb;
+	callbacks.transfer_progress = &progress_cb;
 	callbacks.credentials = cred_acquire_cb;
 	callbacks.payload = anbGitBridge;
 	git_remote_set_callbacks(remote, &callbacks);
