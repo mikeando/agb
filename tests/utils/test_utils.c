@@ -50,7 +50,7 @@ int system_fmt(const char * cmd_fmt, ... ) {
 	return status;
 }
 
-void create_temp_dir() {
+void create_temp_dir(void) {
 	if(temp_dir) return;
 
 	const char* ztemp_dir = getenv("ANB_TEST_DIR");
@@ -70,7 +70,7 @@ void create_temp_dir() {
 	temp_dir = mkdtemp(repo_dir_name_template);
 }
 
-void create_simple_repo() {
+void create_simple_repo(void) {
 	create_repo("simple_repo");
 }
 

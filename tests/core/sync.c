@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 
-void check_git_ok(int ok) {
+static void check_git_ok(int ok) {
 	if(ok!=0) {
 		cl_fail(giterr_last()->message);
 	}
@@ -19,8 +19,8 @@ int debug_me(const char * path, const char * refspec, void * payload) {
 	return 0;
 }
 
-AGBCore  * anbGitBridge;
-AGBError * anbGitBridgeError;
+static AGBCore  * anbGitBridge;
+static AGBError * anbGitBridgeError;
 
 void test_core_sync__initialize(void) {
 	agb_error_new(&anbGitBridgeError);
@@ -31,13 +31,13 @@ void test_core_sync__cleanup(void) {
 	agb_error_delete(anbGitBridgeError);
 }
 
-void setupDefault() {
+static void setupDefault(void) {
 	create_simple_repo();
 	agb_bridge_new(&anbGitBridge);
 	init_bridge(anbGitBridge);
 }
 
-void setupTofu() {
+static void setupTofu(void) {
 	create_repo("tofu");
 	agb_bridge_new(&anbGitBridge);
 	init_bridge_with_repo(anbGitBridge,"tofu");

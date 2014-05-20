@@ -6,14 +6,14 @@
 
 #include "agb/internal/eh.h"
 
-const git_commit * branch_commit = NULL;
-const git_commit * head_commit = NULL;
-const git_commit * base_commit = NULL;
+static const git_commit * branch_commit = NULL;
+static const git_commit * head_commit = NULL;
+static const git_commit * base_commit = NULL;
 
-const git_tree * head_tree = NULL; 
-const git_tree * branch_tree = NULL; 
-const git_tree * base_tree = NULL;
-git_repository * repo = NULL;
+static const git_tree * head_tree = NULL; 
+static const git_tree * branch_tree = NULL; 
+static const git_tree * base_tree = NULL;
+static git_repository * repo = NULL;
 
 #define REPODIR "/Users/michaelanderson/Code/ANB/testDocRepos/test_branching/"
 

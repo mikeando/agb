@@ -3,9 +3,9 @@
 #include "git2.h"
 
 
-jmp_buf eh;
+static jmp_buf eh;
 
-void handle_git_error( int ok ) {
+static void handle_git_error( int ok ) {
 	if(ok==0) return;
 	printf("Error encountered.... %d : %s\n",ok, giterr_last()->message);
 	longjmp(eh,ok);

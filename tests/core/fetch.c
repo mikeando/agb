@@ -11,8 +11,8 @@
 static int port=8090;
 static pid_t server_pid = 0;
 
-AGBCore * anbGitBridge;
-AGBError * error ;
+static AGBCore * anbGitBridge;
+static AGBError * error ;
 
 void test_core_fetch__initialize(void) {
 	create_temp_dir();
@@ -81,7 +81,7 @@ void test_core_fetch__reports_errors(void) {
 
 
 //TODO: This should have more arguments.
-void * g_userdata;
+static void * g_userdata;
 void fetch_callback(void * userdata) {
 	g_userdata = userdata;
 }

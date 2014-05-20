@@ -4,7 +4,7 @@
 
 #include <memory.h>
 
-int sort_entries(const void * e1r, const void * e2r) {
+static int sort_entries(const void * e1r, const void * e2r) {
 	AGBMergeIteratorEntry * e1 = (AGBMergeIteratorEntry*)e1r;
 	AGBMergeIteratorEntry * e2 = (AGBMergeIteratorEntry*)e2r;
 
@@ -184,7 +184,7 @@ int agb_merge_iterator_is_valid(const AGBMergeIterator *it) {
 
 
 //TODO: Add error handling.
-int commit_oid_to_tree(git_tree ** tree, git_repository * repo, git_oid * oid ) {
+static int commit_oid_to_tree(git_tree ** tree, git_repository * repo, git_oid * oid ) {
 	if(!repo) return 1;
 	git_commit * commit;
 	git_commit_lookup(&commit, repo, oid);
@@ -198,7 +198,7 @@ int commit_oid_to_tree(git_tree ** tree, git_repository * repo, git_oid * oid ) 
 /*
  * Get the SHA of the two trees we're going to merge and create an iterator from them.
  */
-AGBMergeIterator * merge( AGBCore * anbGitBridge, AGBError * error ) {
+static AGBMergeIterator * merge( AGBCore * anbGitBridge, AGBError * error ) {
 
 	git_oid head_oid;
 	git_oid branch_oid;

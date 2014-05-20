@@ -18,7 +18,7 @@ int system_fmt(const char * cmd_fmt, ... );
  * Also sets the temp_dir to the name of the created directory.
  * Doesn't recreate the directory if temp_dir is already set.
  */
-void create_temp_dir();
+void create_temp_dir(void);
 
 /**
  * Creates a minimal repository called "simple_repo" inside `temp_dir`.
@@ -26,7 +26,7 @@ void create_temp_dir();
  * Created repository contains only one file, README.txt, and a single commit
  * to add that file.
  */
-void create_repo();
+void create_repo(const char * repo_name);
 
 /**
  * Creates a minimal repository called "simple_repo" inside `temp_dir`.
@@ -34,7 +34,7 @@ void create_repo();
  * Created repository contains only one file, README.txt, and a single commit
  * to add that file.
  */
-void create_simple_repo();
+void create_simple_repo(void);
 
 /** 
  * Create a file in the simple_repo repository with the specified name, and 
