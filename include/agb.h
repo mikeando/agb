@@ -1,6 +1,15 @@
+#include "stdint.h"
 typedef struct AGBCore AGBCore;
 typedef struct AGBError AGBError;
 typedef struct AGBMergeIterator AGBMergeIterator;
+/* TODO: This is probably too low level to expose here? */
+typedef struct AGBBranch AGBBranch;
+/* TODO: This is probably too low level to expose here? */
+struct AGBBranchCompare {
+	uint32_t extra_commits_on_a;
+	uint32_t extra_commits_on_b;
+};
+typedef struct AGBBranchCompare AGBBranchCompare;
 
 typedef void(*AGBCallback)(void*);
 
@@ -40,3 +49,9 @@ git_filemode_t agb_merge_iterator_entry_filemode( const AGBMergeIterator * it, i
 
 int agb_merge_iterator_next( AGBMergeIterator * it);
 int agb_merge_iterator_is_valid( const AGBMergeIterator * it);
+
+
+int agb_branch_delete( AGBBranch * branch );
+int agb_branch_find( AGBCore * core , const char * name, AGBBranch ** branch, AGBError * error); 
+int agb_branch_compare( const AGBBranch * branch_a, const AGBBranch * branch_b, AGBBranchCompare * result);
+

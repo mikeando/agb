@@ -11,7 +11,7 @@ int agb__error_translate(AGBError * error, const char * message, int errcode) {
 		error->error_code_git = 0;
 	}
 	else if(errcode==GIT_ENOTFOUND) {
-		git_err_message = "remote not found.";
+		git_err_message = "not found.";
 		error->error_code = 1;
 		error->error_code_git = GIT_ENOTFOUND;
 	}

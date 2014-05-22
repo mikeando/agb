@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 
+__attribute__((unused))
 static void check_git_ok(int ok) {
 	if(ok!=0) {
 		cl_fail(giterr_last()->message);
@@ -31,6 +32,7 @@ void test_core_sync__cleanup(void) {
 	agb_error_delete(anbGitBridgeError);
 }
 
+__attribute__((unused))
 static void setupDefault(void) {
 	create_simple_repo();
 	agb_bridge_new(&anbGitBridge);

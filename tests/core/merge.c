@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include "agb/internal/eh.h"
+#include "external/popen3.h"
 
 static const git_commit * branch_commit = NULL;
 static const git_commit * head_commit = NULL;
@@ -16,6 +17,34 @@ static const git_tree * base_tree = NULL;
 static git_repository * repo = NULL;
 
 #define REPODIR "/Users/michaelanderson/Code/ANB/testDocRepos/test_branching/"
+
+//TODO: This is derived from test_utils.c status_in_commit
+
+char test_core_merge__compare_with_parents_merge_base(const char * commit_id, const char * filename) {
+	char * cmd;
+	int readfd;
+	g_debug=1;
+	asprintf(&cmd,"(cd " REPODIR " ; git diff --name-status $(git merge-base $(git show --pretty=format:%%p %s))..%s | ( grep '\\<%s\\>' || true ) )", commit_id, commit_id, filename);
+	if(g_debug) printf("repo_contains: running %s\n", cmd);
+	pid_t pid = popen3(cmd, NULL, &readfd, NULL);
+
+
+	char result[1]={0};
+	ssize_t bytes_read = read(readfd,result,1);
+
+	int status=0;
+	waitpid(pid,&status,0);
+	free(cmd);
+
+	if(!WIFEXITED(status) || WEXITSTATUS(status)!=0 ) {
+		cl_fail("git diff failed");
+	}
+
+	if( bytes_read==0 ) 
+		return 0;
+	return result[0];
+}
+
 
 //TODO: I think this leaks...
 const git_commit * commit_from_ref(const char * refname) {
@@ -208,6 +237,7 @@ static inline int agb_git_oid_equal(const git_oid * oid_a, const git_oid * oid_b
 	return git_oid_equal(oid_a,oid_b);
 }
 
+
 void test_core_merge__demo_create_merge_commit(void) {
 
 	AGBError * error;
@@ -284,9 +314,6 @@ void test_core_merge__demo_create_merge_commit(void) {
 	parents[1] = branch_commit;
 
 
-
-		
-	
 	git_signature * author_signature = NULL;
 
 	// Time since epoch
@@ -309,7 +336,7 @@ void test_core_merge__demo_create_merge_commit(void) {
 	int ok = git_commit_create(
 				&commit_id, 
 				repo,
-				"refs/heads/branch_c",
+				NULL,
 				author_signature,
 				author_signature,
 				"UTF-8",
@@ -322,12 +349,32 @@ void test_core_merge__demo_create_merge_commit(void) {
 		agb__error_translate(error,"git_commit_create failed",ok);
 		goto cleanup_error;
 	}
-	
-	git_signature_free(author_signature);
 
 	// Then update the refs. 
+	//TODO: Do we need to release this ref?
+	git_reference * ref;
+	ok = git_reference_create_matching(
+			&ref,
+			repo,
+		   	"refs/heads/branch_c",
+			&commit_id, 
+			1, 
+			NULL, 
+			author_signature, 
+			"merged by libagb");
 
-	cl_fail("IMPLEMENT ME!");
+	if(ok!=0) {
+		agb__error_translate(error,"git_reference_create failed",ok);
+		goto cleanup_error;
+	}
+
+	git_signature_free(author_signature);
+
+	// Now check we got the expected files
+	cl_assert_equal_c('A', test_core_merge__compare_with_parents_merge_base("branch_c", "created_in_a.txt"));
+	cl_assert_equal_c('A', test_core_merge__compare_with_parents_merge_base("branch_c", "created_in_b.txt"));
+
+	return;
 
 cleanup_error:
 
@@ -336,6 +383,7 @@ cleanup_error:
 	if(author_signature) {
 		git_signature_free(author_signature);
 	}
+	cl_fail(error->message);
 	
 
 }

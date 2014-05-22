@@ -11,9 +11,9 @@ static int sort_entries(const void * e1r, const void * e2r) {
 	return strcmp(e1->name, e2->name);
 }
 
-int copy_entries(AGBMergeIteratorEntry * entries, const git_tree * tree, int idx) {
-	int n = git_tree_entrycount(tree);
-	int i;
+static size_t copy_entries(AGBMergeIteratorEntry * entries, const git_tree * tree, int idx) {
+	size_t n = git_tree_entrycount(tree);
+	size_t i;
 	for(i=0; i<n; ++i) {
 		const git_tree_entry * gte = git_tree_entry_byindex(tree,i);
 		entries[i].name = git_tree_entry_name(gte);
@@ -69,7 +69,7 @@ AGBMergeIterator * agb_merge__create_iterator(const git_tree * head_tree, const 
 	// Allocate enough space for all the entries of all three trees.
 	// We'll go through and prune out duplicates later.
 	
-	int n_entries = 0;
+	size_t n_entries = 0;
 	n_entries += git_tree_entrycount(head_tree);
 	n_entries += git_tree_entrycount(branch_tree);
 	n_entries += git_tree_entrycount(base_tree);
@@ -198,6 +198,7 @@ static int commit_oid_to_tree(git_tree ** tree, git_repository * repo, git_oid *
 /*
  * Get the SHA of the two trees we're going to merge and create an iterator from them.
  */
+__attribute__((unused))
 static AGBMergeIterator * merge( AGBCore * anbGitBridge, AGBError * error ) {
 
 	git_oid head_oid;

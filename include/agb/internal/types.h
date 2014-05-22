@@ -27,3 +27,7 @@ struct AGBMergeIterator {
 	int idx;
 };
 
+struct AGBBranch {
+	git_reference * ref;
+};
+
