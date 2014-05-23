@@ -23,7 +23,6 @@ static git_repository * repo = NULL;
 char test_core_merge__compare_with_parents_merge_base(const char * commit_id, const char * filename) {
 	char * cmd;
 	int readfd;
-	g_debug=1;
 	asprintf(&cmd,"(cd " REPODIR " ; git diff --name-status $(git merge-base $(git show --pretty=format:%%p %s))..%s | ( grep '\\<%s\\>' || true ) )", commit_id, commit_id, filename);
 	if(g_debug) printf("repo_contains: running %s\n", cmd);
 	pid_t pid = popen3(cmd, NULL, &readfd, NULL);
