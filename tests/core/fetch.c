@@ -6,6 +6,7 @@
 #include "utils/clarx.h"
 #include <stdio.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 
 static int port=8090;

@@ -7,7 +7,7 @@
 #include <string.h>
 #include "utils/test_utils.h"
 #include <time.h>
-
+#include <sys/wait.h>
 
 
 //=====================================
@@ -195,6 +195,8 @@ int init_bridge_with_repo(AGBCore* anbGitBridge, const char * repo_name) {
 	if(ok!=0)
 		return ok;
 	anbGitBridge->origin_name = "origin";
+	anbGitBridge->local_branch_name = "master";
+	anbGitBridge->remote_branch_name = "origin/master";
 	return 0;
 }
 
@@ -207,6 +209,8 @@ int init_bridge(AGBCore* anbGitBridge) {
 		return ok;
 
 	anbGitBridge->origin_name = "origin";
+	anbGitBridge->local_branch_name = "master";
+	anbGitBridge->remote_branch_name = "origin/master";
 	return 0;
 }
 
