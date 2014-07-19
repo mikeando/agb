@@ -8,7 +8,7 @@ SET(CMAKE_BUILD_TYPE Debug)
 IF (MSVC)
     ERROR("MSVC Not Supported yet")
 ELSE ()
-	SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -Wall -Wextra ${CMAKE_C_FLAGS}")
+	SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -Wall -Wextra -std=c99 ${CMAKE_C_FLAGS}")
 ENDIF()
 
 
