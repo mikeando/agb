@@ -1,7 +1,7 @@
 #include "clar/clar.h"
 #include "agb.h"
 #include "git2.h"
-
+#include "agb/internal/types.h"
 #include "utils/test_utils.h"
 #include "utils/clarx.h"
 #include <stdio.h>
@@ -14,8 +14,10 @@ static void check_git_ok(int ok) {
 	}
 }
 
+#define REPODIR "/Users/michaelanderson/Code/ANB/testDocRepos/test_compare/"
 
-static AGBCore  * anbGitBridge;
+
+static AGBCore  * anbGitBridge = NULL;
 static AGBError * anbGitBridgeError;
 static AGBBranch * branch_a;
 static AGBBranch * branch_b;
@@ -24,6 +26,14 @@ void test_core_compare__initialize(void) {
 	agb_error_new(&anbGitBridgeError);
 	branch_a = NULL;
 	branch_b = NULL;
+	anbGitBridge = NULL;
+	//TODO: This way of opening a repo is _SUPER_ ugly
+	agb_bridge_new(&anbGitBridge);
+	int ok = git_repository_open(&anbGitBridge->repository,REPODIR);
+	if(ok!=0) {
+		cl_fail_v(__FILE__, __LINE__, "Unable to open repo %s : %s ", REPODIR, giterr_last()->message );
+	}
+	anbGitBridge->origin_name = "origin";
 }
 
 void test_core_compare__cleanup(void) {
@@ -39,8 +49,12 @@ static void setupDefault() {
 
 void test_core_compare__same_gives_zero(void) {
 
-	agb_branch_find(anbGitBridge, "A", &branch_a, anbGitBridgeError );
-	agb_branch_find(anbGitBridge, "A", &branch_b, anbGitBridgeError );
+	if(agb_branch_find(anbGitBridge, "A", &branch_a, anbGitBridgeError )!=0) {
+		cl_failx( "Error getting branch \"refs/heads/A\" : %s", agb_error_message(anbGitBridgeError) );
+	}
+	if(agb_branch_find(anbGitBridge, "A", &branch_b, anbGitBridgeError )!=0) {
+		cl_failx( "Error getting branch \"refs/heads/A\" : %s", agb_error_message(anbGitBridgeError) );
+	}
 	
 	AGBBranchCompare compare;
 
@@ -51,8 +65,12 @@ void test_core_compare__same_gives_zero(void) {
 }
 
 void test_core_compare__parent_gives_correct(void) {
-	agb_branch_find(anbGitBridge, "A", &branch_a, anbGitBridgeError );
-	agb_branch_find(anbGitBridge, "A_parent", &branch_b, anbGitBridgeError );
+	if(agb_branch_find(anbGitBridge, "A", &branch_a, anbGitBridgeError )!=0) {
+		cl_failx( "Error getting branch \"A\" : %s", agb_error_message(anbGitBridgeError) );
+	}
+	if(agb_branch_find(anbGitBridge, "A_parent", &branch_b, anbGitBridgeError )!=0) {
+		cl_failx( "Error getting branch \"A_parent\" : %s", agb_error_message(anbGitBridgeError) );
+	}
 	
 	AGBBranchCompare compare;
 
@@ -64,8 +82,12 @@ void test_core_compare__parent_gives_correct(void) {
 }
 
 void test_core_compare__child_gives_correct(void) {
-	agb_branch_find(anbGitBridge, "A_parent", &branch_a, anbGitBridgeError );
-	agb_branch_find(anbGitBridge, "A", &branch_b, anbGitBridgeError );
+	if(agb_branch_find(anbGitBridge, "A_parent", &branch_a, anbGitBridgeError )!=0) {
+		cl_failx( "Error getting branch \"A_parent\" : %s", agb_error_message(anbGitBridgeError) );
+	}
+	if(agb_branch_find(anbGitBridge, "A", &branch_b, anbGitBridgeError )!=0) {
+		cl_failx( "Error getting branch \"A\" : %s", agb_error_message(anbGitBridgeError) );
+	}
 	
 	AGBBranchCompare compare;
 

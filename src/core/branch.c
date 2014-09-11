@@ -23,7 +23,8 @@ int agb_branch_find( AGBCore * core , const char * name, AGBBranch ** branch, AG
 
 	git_reference * ref=NULL;
 	int ok;
-	if((ok=git_reference_lookup(&ref,core->repository,name))!=0) {
+	
+	if((ok=git_reference_dwim(&ref, core->repository, name))!=0) {
 		agb__error_translate(e,"git_reference_lookup failed",ok);
 		goto cleanup_error;
 	}

@@ -187,20 +187,27 @@ pid_t start_serving_repos(int port) {
 //TODO: This may be what we really move into the core library!
 #include "git2.h"
 #include "agb/internal/types.h"
-void init_bridge_with_repo(AGBCore* anbGitBridge, const char * repo_name) {
+int init_bridge_with_repo(AGBCore* anbGitBridge, const char * repo_name) {
 
 	char * repo_path;
 	asprintf(&repo_path, "%s/%s", temp_dir, repo_name ); 
-	git_repository_open(&anbGitBridge->repository,repo_path);
+	int ok = git_repository_open(&anbGitBridge->repository,repo_path);
+	if(ok!=0)
+		return ok;
 	anbGitBridge->origin_name = "origin";
+	return 0;
 }
 
-void init_bridge(AGBCore* anbGitBridge) {
+int init_bridge(AGBCore* anbGitBridge) {
 
 	char * repo_path;
 	asprintf(&repo_path, "%s/simple_repo", temp_dir ); 
-	git_repository_open(&anbGitBridge->repository,repo_path);
+	int ok = git_repository_open(&anbGitBridge->repository,repo_path);
+	if(ok!=0)
+		return ok;
+
 	anbGitBridge->origin_name = "origin";
+	return 0;
 }
 
 

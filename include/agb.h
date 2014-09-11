@@ -21,7 +21,7 @@ int agb_fetch(AGBCore * anbGitBridge, AGBError * error);
 int agb_set_fetch_callback(AGBCore * anbGitBridge, AGBCallback fetch_callback, void * userdata, AGBError * error);
 
 int agb_error_new( AGBError ** error );
-int agb_bridge_new( AGBCore ** error );
+int agb_bridge_new( AGBCore ** core );
 int agb_error_delete( AGBError * error );
 int agb_bridge_delete( AGBCore * error );
 const char * agb_error_message( const AGBError * error);
