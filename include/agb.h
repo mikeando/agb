@@ -1,3 +1,4 @@
+#pragma once
 #include "stdint.h"
 typedef struct AGBCore AGBCore;
 typedef struct AGBError AGBError;
