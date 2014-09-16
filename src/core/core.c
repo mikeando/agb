@@ -22,6 +22,21 @@ int agb_bridge_new( AGBCore ** anbGitBridge ) {
 	return 0;
 }
 
+//TODO: Give this better error handling
+int agb_core_create( AGBCore ** core, const char * path) {
+	agb_bridge_new(core);
+	AGBCore * repo = *core;
+
+
+	int ok = git_repository_open(&repo->repository,path);
+	if(ok!=0)
+		return ok;
+
+	repo->origin_name = "origin";
+	return 0;
+	
+}
+
 int agb_error_delete( AGBError * error ) {
 	if(!error) return 0;
 	free((char*)error->message);
