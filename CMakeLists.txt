@@ -1,0 +1,64 @@
+PROJECT(libagb C)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
+OPTION( BUILD_CLAR			"Build Tests using the Clar suite"		ON  )
+
+
+IF (MSVC)
+    ERROR("MSVC Not Supported yet")
+ELSE ()
+	SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -Wall -Wextra ${CMAKE_C_FLAGS}")
+ENDIF()
+
+find_library(git2 ../../libgit2)
+
+# Collect sourcefiles
+FILE(GLOB SRC_H include/agb.h include/agb/internal/*.h include/agb/*.h)
+FILE(GLOB SRC_AGB src/core/*.c)
+INCLUDE_DIRECTORIES( include )
+INCLUDE_DIRECTORIES( ../../libgit2/include )
+ADD_LIBRARY(agb ${SRC_H} ${SRC_AGB})
+
+IF (BUILD_CLAR)
+	FIND_PACKAGE(PythonInterp REQUIRED)
+
+	#SET(CLAR_FIXTURES "${CMAKE_CURRENT_SOURCE_DIR}/tests/resources/")
+	SET(CLAR_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+	#SET(CLAR_RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/resources" CACHE PATH "Path to test resources.")
+	#ADD_DEFINITIONS(-DCLAR_FIXTURE_PATH=\"${CLAR_FIXTURES}\")
+	#ADD_DEFINITIONS(-DCLAR_RESOURCES=\"${TEST_RESOURCES}\")
+
+	INCLUDE_DIRECTORIES(${CLAR_PATH})
+	FILE(GLOB_RECURSE SRC_TEST ${CLAR_PATH}/*/*.c ${CLAR_PATH}/*/*.h)
+	SET(SRC_CLAR "${CLAR_PATH}/test.c" "${CLAR_PATH}/clar/clar.c")
+
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${CLAR_PATH}/clar.suite
+		COMMAND ${PYTHON_EXECUTABLE} generate.py -f .
+		DEPENDS ${SRC_TEST}
+		WORKING_DIRECTORY ${CLAR_PATH}
+	)
+
+	SET_SOURCE_FILES_PROPERTIES(
+		${CLAR_PATH}/test.c
+		PROPERTIES OBJECT_DEPENDS ${CLAR_PATH}/clar.suite)
+
+	ADD_EXECUTABLE(run_tests ${SRC_H} ${SRC_AGB} ${SRC_CLAR} ${SRC_TEST})
+
+
+	TARGET_LINK_LIBRARIES(run_tests git2)
+	#TARGET_LINK_LIBRARIES(libgit2_clar ${SSH_LIBRARIES})
+	#TARGET_LINK_LIBRARIES(libgit2_clar ${ICONV_LIBRARIES})
+	#TARGET_OS_LIBRARIES(libgit2_clar)
+	#MSVC_SPLIT_SOURCES(libgit2_clar)
+
+	IF (MSVC_IDE)
+		# Precompiled headers
+		SET_TARGET_PROPERTIES(libgit2_clar PROPERTIES COMPILE_FLAGS "/Yuprecompiled.h /FIprecompiled.h")
+	ENDIF ()
+
+	ENABLE_TESTING()
+	ADD_TEST(run_tests run_tests)
+ENDIF ()
+
+
