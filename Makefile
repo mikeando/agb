@@ -1,5 +1,8 @@
 all:
-	scons
+	mkdir -p build
+	( cd build && cmake .. && make ; )
+
 
 clean:
-	scons --clean
+	mkdir -p build
+	( cd build && cmake .. && make clean ; )
