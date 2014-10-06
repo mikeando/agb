@@ -10,13 +10,23 @@ ELSE ()
 	SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -Wall -Wextra ${CMAKE_C_FLAGS}")
 ENDIF()
 
-find_library(git2 ../../libgit2)
+
+find_path(LIBGIT2_INCLUDE_DIR git2.h
+	HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../../libgit2
+	PATH_SUFFIXES libgit2 include )
+
+
+find_library(LIBGIT2_LIBRARIES git2 libgit2
+	PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../libgit2
+	PATH_SUFFIXES build)
+
+
 
 # Collect sourcefiles
 FILE(GLOB SRC_H include/agb.h include/agb/internal/*.h include/agb/*.h)
 FILE(GLOB SRC_AGB src/core/*.c)
 INCLUDE_DIRECTORIES( include )
-INCLUDE_DIRECTORIES( ../../libgit2/include )
+INCLUDE_DIRECTORIES( ${LIBGIT2_INCLUDE_DIR} )
 ADD_LIBRARY(agb ${SRC_H} ${SRC_AGB})
 
 IF (BUILD_CLAR)
@@ -34,7 +44,7 @@ IF (BUILD_CLAR)
 
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${CLAR_PATH}/clar.suite
-		COMMAND ${PYTHON_EXECUTABLE} generate.py -f .
+		COMMAND ${PYTHON_EXECUTABLE} ${CLAR_PATH}/clar/generate.py -f .
 		DEPENDS ${SRC_TEST}
 		WORKING_DIRECTORY ${CLAR_PATH}
 	)
@@ -46,16 +56,11 @@ IF (BUILD_CLAR)
 	ADD_EXECUTABLE(run_tests ${SRC_H} ${SRC_AGB} ${SRC_CLAR} ${SRC_TEST})
 
 
-	TARGET_LINK_LIBRARIES(run_tests git2)
+	TARGET_LINK_LIBRARIES(run_tests ${LIBGIT2_LIBRARIES})
 	#TARGET_LINK_LIBRARIES(libgit2_clar ${SSH_LIBRARIES})
 	#TARGET_LINK_LIBRARIES(libgit2_clar ${ICONV_LIBRARIES})
 	#TARGET_OS_LIBRARIES(libgit2_clar)
 	#MSVC_SPLIT_SOURCES(libgit2_clar)
-
-	IF (MSVC_IDE)
-		# Precompiled headers
-		SET_TARGET_PROPERTIES(libgit2_clar PROPERTIES COMPILE_FLAGS "/Yuprecompiled.h /FIprecompiled.h")
-	ENDIF ()
 
 	ENABLE_TESTING()
 	ADD_TEST(run_tests run_tests)
