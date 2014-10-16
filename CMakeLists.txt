@@ -3,6 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 OPTION( BUILD_CLAR			"Build Tests using the Clar suite"		ON  )
 
+SET(CMAKE_BUILD_TYPE Debug)
 
 IF (MSVC)
     ERROR("MSVC Not Supported yet")
@@ -10,6 +11,8 @@ ELSE ()
 	SET(CMAKE_C_FLAGS "-D_GNU_SOURCE -Wall -Wextra ${CMAKE_C_FLAGS}")
 ENDIF()
 
+
+# libgit2
 
 find_path(LIBGIT2_INCLUDE_DIR git2.h
 	HINTS ${CMAKE_CURRENT_SOURCE_DIR}/../../libgit2

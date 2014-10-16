@@ -58,7 +58,7 @@ void test_core_compare__same_gives_zero(void) {
 	
 	AGBBranchCompare compare;
 
-	agb_branch_compare(branch_a, branch_b, &compare);
+	int ok = agb_branch_compare(branch_a, branch_b, &compare, anbGitBridgeError);
 
 	cl_assert_equal_i(0, compare.extra_commits_on_a);
 	cl_assert_equal_i(0, compare.extra_commits_on_b);
@@ -74,7 +74,7 @@ void test_core_compare__parent_gives_correct(void) {
 	
 	AGBBranchCompare compare;
 
-	agb_branch_compare(branch_a, branch_b, &compare);
+	int ok = agb_branch_compare(branch_a, branch_b, &compare, anbGitBridgeError);
 
 	cl_assert_equal_i(1, compare.extra_commits_on_a);
 	cl_assert_equal_i(0, compare.extra_commits_on_b);
@@ -91,7 +91,7 @@ void test_core_compare__child_gives_correct(void) {
 	
 	AGBBranchCompare compare;
 
-	agb_branch_compare(branch_a, branch_b, &compare);
+	int ok = agb_branch_compare(branch_a, branch_b, &compare, anbGitBridgeError);
 
 	cl_assert_equal_i(0, compare.extra_commits_on_a);
 	cl_assert_equal_i(1, compare.extra_commits_on_b);

@@ -7,6 +7,8 @@ struct AGBCore {
 
 	AGBCallback fetch_callback;
 	void* fetch_callback_userdata;
+    char const *local_branch_name;
+    char const *remote_branch_name;
 };
 
 struct AGBError {
@@ -28,6 +30,8 @@ struct AGBMergeIterator {
 };
 
 struct AGBBranch {
+	AGBCore * core;
 	git_reference * ref;
+	git_oid * oid;
 };
 

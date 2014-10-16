@@ -61,10 +61,14 @@ void test_core_fetch__works(void) {
 	create_local_repo();
 
 	cl_assert( !repo_contains("banana", "banana_fetched.txt"));
-	ok = agb_fetch(anbGitBridge, error);
+    size_t ahead, behind;
+	ok = agb_fetch(anbGitBridge, error, &ahead, &behind);
 	cl_assert_equal_i(0, ok);
 	cl_assert( !repo_contains("banana", "banana_fetched.txt"));
 	cl_assert_equal_c('A', status_in_commit("banana","origin/master","banana_fetched.txt"));
+    cl_assert_equal_i(0, (int)ahead);
+    cl_assert_equal_i(1, (int)behind);
+
 }
 
 void test_core_fetch__reports_errors(void) {
@@ -73,8 +77,9 @@ void test_core_fetch__reports_errors(void) {
 	create_local_repo();
 
 	kill_server();
+    size_t ahead, behind;
 
-	ok = agb_fetch(anbGitBridge, error);
+	ok = agb_fetch(anbGitBridge, error, &ahead, &behind);
 	cl_assert_equal_i(1, ok);
 	cl_assert_equal_s("git_remote_connect failed : Failed to connect to localhost: Connection refused [git:-1]", agb_error_message(error) );
 }
@@ -96,7 +101,8 @@ void test_core_fetch__calls_callbacks(void) {
 	cl_assert_equal_i(0, ok);
 
 	g_userdata = NULL;
-	ok = agb_fetch(anbGitBridge, error);
+    size_t ahead, behind;
+	ok = agb_fetch(anbGitBridge, error, &ahead, &behind);
 	cl_assert_equal_i(0, ok);
 	cl_assert_equal_p(userdata, g_userdata);
 }

@@ -1,5 +1,6 @@
 #pragma once
-#include "stdint.h"
+#include <stdint.h>
+#include <stddef.h>
 typedef struct AGBCore AGBCore;
 typedef struct AGBError AGBError;
 typedef struct AGBMergeIterator AGBMergeIterator;
@@ -7,8 +8,8 @@ typedef struct AGBMergeIterator AGBMergeIterator;
 typedef struct AGBBranch AGBBranch;
 /* TODO: This is probably too low level to expose here? */
 struct AGBBranchCompare {
-	uint32_t extra_commits_on_a;
-	uint32_t extra_commits_on_b;
+	size_t extra_commits_on_a;
+	size_t extra_commits_on_b;
 };
 typedef struct AGBBranchCompare AGBBranchCompare;
 
@@ -18,7 +19,7 @@ int agb_sync_files(AGBCore* anbGitBridge, AGBError * error);
 /**
  * For now we only support fetching from origin.
  */
-int agb_fetch(AGBCore * anbGitBridge, AGBError * error);
+int agb_fetch(AGBCore * anbGitBridge, AGBError * error, size_t * ahead, size_t * behind );
 int agb_set_fetch_callback(AGBCore * anbGitBridge, AGBCallback fetch_callback, void * userdata, AGBError * error);
 
 int agb_error_new( AGBError ** error );
@@ -55,5 +56,5 @@ int agb_merge_iterator_is_valid( const AGBMergeIterator * it);
 
 int agb_branch_delete( AGBBranch * branch );
 int agb_branch_find( AGBCore * core , const char * name, AGBBranch ** branch, AGBError * error); 
-int agb_branch_compare( const AGBBranch * branch_a, const AGBBranch * branch_b, AGBBranchCompare * result);
+int agb_branch_compare( const AGBBranch * branch_a, const AGBBranch * branch_b, AGBBranchCompare * result, AGBError * error);
 

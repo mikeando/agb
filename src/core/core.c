@@ -33,6 +33,8 @@ int agb_core_create( AGBCore ** core, const char * path) {
 		return ok;
 
 	repo->origin_name = "origin";
+    repo->local_branch_name = "master";
+    repo->remote_branch_name = "origin/master";
 	return 0;
 	
 }

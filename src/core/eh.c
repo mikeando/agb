@@ -2,6 +2,7 @@
 #include "agb/internal/eh.h"
 #include "agb/internal/types.h"
 #include <stdio.h>
+#include <string.h>
 
 int agb__error_translate(AGBError * error, const char * message, int errcode) {
 	const char * git_err_message = NULL;
@@ -37,5 +38,13 @@ int agb__error_translate(AGBError * error, const char * message, int errcode) {
 	error->message = fmt_mesg;
 	return (errcode==0)?0:1;
 }
+
+int agb__error_from_string(AGBError * error, const char * message, int errcode, int git_errcode) {
+    error->error_code = errcode;
+    error->error_code_git = git_errcode;
+    error->message = strdup(message);
+    return (errcode==0)?0:1;
+}
+
 
 
