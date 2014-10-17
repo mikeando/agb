@@ -1,10 +1,7 @@
 #include "clar/clar.h"
 #include "agb.h"
-#include "git2.h"
 #include "agb/internal/types.h"
-#include "utils/test_utils.h"
 #include "utils/clarx.h"
-#include <stdio.h>
 
 
 __attribute__((unused))

@@ -24,11 +24,6 @@ void test_core_status__initialize(void) {
 
 
 #include "agb/internal/types.h"
-#include <assert.h>
-
-
-#include <string.h>
-
 
 
 void test_core_status__simple_status_report(void) {

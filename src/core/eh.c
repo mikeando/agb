@@ -1,6 +1,5 @@
 #include "agb.h"
 #include "agb/internal/eh.h"
-#include "agb/internal/types.h"
 #include <stdio.h>
 #include <string.h>
 

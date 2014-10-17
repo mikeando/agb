@@ -3,10 +3,8 @@
 #include "external/popen3.h"
 #include <stdio.h>
 #include <stdarg.h>
-#include <unistd.h>
 #include <string.h>
 #include "utils/test_utils.h"
-#include <time.h>
 #include <sys/wait.h>
 
 
@@ -156,8 +154,8 @@ char status_in_commit(const char * repo_name, const char * commit_id, const char
 	pid_t pid = popen3(cmd, NULL, &readfd, NULL);
 
 
-	char result[1]={0};
-	ssize_t bytes_read = read(readfd,result,1);
+	char result=0;
+	ssize_t bytes_read = read(readfd,&result,1);
 
 	int status=0;
 	waitpid(pid,&status,0);
@@ -169,7 +167,7 @@ char status_in_commit(const char * repo_name, const char * commit_id, const char
 
 	if( bytes_read==0 ) 
 		return 0;
-	return result[0];
+	return result;
 }
 
 //TODO: This serves too many repos. But I couldn't get whitelisting them working 
@@ -185,7 +183,6 @@ pid_t start_serving_repos(int port) {
 }
 
 //TODO: This may be what we really move into the core library!
-#include "git2.h"
 #include "agb/internal/types.h"
 int init_bridge_with_repo(AGBCore* anbGitBridge, const char * repo_name) {
 

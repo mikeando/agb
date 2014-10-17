@@ -1,6 +1,5 @@
 #include "agb.h"
 #include "agb/internal/types.h"
-#include "git2.h"
 
 #include <memory.h>
 

@@ -3,7 +3,6 @@
 #include "agb/internal/eh.h"
 
 #include <string.h>
-#include <stdio.h>
 
 int agb_branch_delete( AGBBranch * branch ) {
 	if(branch==NULL) return 0;

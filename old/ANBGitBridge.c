@@ -177,7 +177,7 @@ int are_same(AGBTreeEntry* e1, AGBTreeEntry * e2) {
 		return 1;
 	}
 
-	if( ( (e1==NULL) && (e2!=NULL) ) || ( (e1!=NULL) && (e2==NULL) ) ) {
+	if( e1==NULL  || e2==NULL ) {
 		return 0;
 	}
 

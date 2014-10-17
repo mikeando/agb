@@ -1,10 +1,8 @@
 #include "clar/clar.h"
 #include "agb.h"
-#include "git2.h"
 
 #include "utils/test_utils.h"
 #include "utils/clarx.h"
-#include <stdio.h>
 #include <signal.h>
 #include <sys/wait.h>
 

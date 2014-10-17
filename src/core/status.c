@@ -1,8 +1,6 @@
 #include "agb/status.h"
 #include "agb/internal/types.h"
 
-#include "git2.h"
-
 #include <string.h>
 
 //TODO: Get rid of this include
@@ -42,7 +40,7 @@ int agb_get_status_new(AGBStatus ** status, AGBCore * repo ) {
 int agb_status_for_filename(const char * filename, AGBStatus * status) {
 
 	size_t  nStatusEntries = git_status_list_entrycount(status->status);
-	for(int i=0; i<nStatusEntries; ++i) {
+	for(size_t i=0; i<nStatusEntries; ++i) {
 		const git_status_entry * entry = git_status_byindex(status->status, i);
 
 

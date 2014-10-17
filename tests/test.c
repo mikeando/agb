@@ -1,12 +1,6 @@
-#include "agb.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <string.h>
-
-
+#include "git2/threads.h"
+#include "git2/errors.h"
 #include "clar/clar.h"
-#include "git2.h"
 
 int main(int argc, char* argv[]) {
 

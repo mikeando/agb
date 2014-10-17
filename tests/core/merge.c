@@ -28,8 +28,8 @@ char test_core_merge__compare_with_parents_merge_base(const char * commit_id, co
 	pid_t pid = popen3(cmd, NULL, &readfd, NULL);
 
 
-	char result[1]={0};
-	ssize_t bytes_read = read(readfd,result,1);
+	char result=0;
+	ssize_t bytes_read = read(readfd,&result,1);
 
 	int status=0;
 	waitpid(pid,&status,0);
@@ -41,7 +41,7 @@ char test_core_merge__compare_with_parents_merge_base(const char * commit_id, co
 
 	if( bytes_read==0 ) 
 		return 0;
-	return result[0];
+	return result;
 }
 
 
