@@ -2,15 +2,17 @@
 #include "agb/internal/types.h"
 
 #include <memory.h>
+#include <assert.h>
+#include <stdio.h>
 
 static int sort_entries(const void * e1r, const void * e2r) {
-	AGBMergeIteratorEntry * e1 = (AGBMergeIteratorEntry*)e1r;
-	AGBMergeIteratorEntry * e2 = (AGBMergeIteratorEntry*)e2r;
+	AGBMergeEntry * e1 = (AGBMergeEntry *)e1r;
+	AGBMergeEntry * e2 = (AGBMergeEntry *)e2r;
 
 	return strcmp(e1->name, e2->name);
 }
 
-static size_t copy_entries(AGBMergeIteratorEntry * entries, const git_tree * tree, int idx) {
+static size_t copy_entries(AGBMergeEntry * entries, const git_tree * tree, enum AGBMergeIndex idx) {
 	size_t n = git_tree_entrycount(tree);
 	size_t i;
 	for(i=0; i<n; ++i) {
@@ -41,15 +43,21 @@ static inline git_filemode_t agb_git_tree_entry_filemode(const git_tree_entry * 
 
 /*
 #include <stdio.h>
-void debug_dump_me_one(AGBMergeIteratorEntry * entry ) {
-	printf("%s ", entry->name );
-	char buf[7];
-	printf("%s ", entry->ids[0]?git_oid_tostr(buf, 7, entry->ids[0]):"(null)"); 
-	printf("%s ", entry->ids[1]?git_oid_tostr(buf, 7, entry->ids[1]):"(null)"); 
-	printf("%s\n", entry->ids[2]?git_oid_tostr(buf, 7, entry->ids[2]):"(null)"); 
+
+void print_merge_entry_component(AGBMergeEntry * entry, enum AGBMergeIndex idx) {
+    char buf[7];
+    const git_oid * id = agb_merge_entry_id(entry,idx);
+    printf("%s ", id?git_oid_tostr(buf, 7, id):"(null)");
 }
 
-void debug_dump_me(AGBMergeIteratorEntry * entries, int count) {
+void debug_dump_me_one(AGBMergeEntry * entry ) {
+	printf("%s ", entry->name );
+    print_merge_entry_component(entry,AGB_MERGE_LOCAL); printf(" ");
+    print_merge_entry_component(entry,AGB_MERGE_REMOTE); printf(" ");
+    print_merge_entry_component(entry,AGB_MERGE_BASE); printf("\n");
+}
+
+void debug_dump_me(AGBMergeEntry * entries, int count) {
 	int i;
 	for(i=0; i<count; ++i) {
 		printf("  %d ",i);
@@ -73,33 +81,33 @@ AGBMergeIterator * agb_merge__create_iterator(const git_tree * head_tree, const 
 	n_entries += git_tree_entrycount(branch_tree);
 	n_entries += git_tree_entrycount(base_tree);
 
-	AGBMergeIteratorEntry * all_entries = (AGBMergeIteratorEntry*) malloc( n_entries * sizeof(AGBMergeIteratorEntry) );
+	AGBMergeEntry * all_entries = (AGBMergeEntry *) malloc( n_entries * sizeof(AGBMergeEntry) );
 
-	memset(all_entries, 0, n_entries * sizeof(AGBMergeIteratorEntry) ); 
+	memset(all_entries, 0, n_entries * sizeof(AGBMergeEntry) );
 
 	// printf("BEFORE FILL\n");
 	// debug_dump_me(all_entries, n_entries);
 
 
-	AGBMergeIteratorEntry * cursor = all_entries;
+	AGBMergeEntry * cursor = all_entries;
 
-	cursor+=copy_entries(cursor,head_tree,0);
-	cursor+=copy_entries(cursor,branch_tree,1);
-	cursor+=copy_entries(cursor,base_tree,2);
+	cursor+=copy_entries(cursor,head_tree,AGB_MERGE_LOCAL);
+	cursor+=copy_entries(cursor,branch_tree,AGB_MERGE_REMOTE);
+	cursor+=copy_entries(cursor,base_tree,AGB_MERGE_BASE);
 
 	// printf("AFTER FILL\n");
 	// debug_dump_me(all_entries, n_entries);
 
-	qsort(all_entries, n_entries, sizeof(AGBMergeIteratorEntry), &sort_entries);
+	qsort(all_entries, n_entries, sizeof(AGBMergeEntry), &sort_entries);
 
 	// printf("AFTER SORT\n");
 	// debug_dump_me(all_entries, n_entries);
 
 	// Now we merge the duplicate filename entries.
-	AGBMergeIteratorEntry * write_point = all_entries;
-	AGBMergeIteratorEntry * read_point = all_entries;
+	AGBMergeEntry * write_point = all_entries;
+	AGBMergeEntry * read_point = all_entries;
 	int n_merged_entries = n_entries>0 ? 1 : 0;
-	for(int i=0; i<n_entries; ++i) {
+	for(size_t i=0; i<n_entries; ++i) {
 		if(strcmp(read_point->name,write_point->name)==0) {
 			for(int j=0; j<3; ++j) {
 				if(read_point->treeentries[j]!=NULL) {
@@ -113,7 +121,7 @@ AGBMergeIterator * agb_merge__create_iterator(const git_tree * head_tree, const 
 		//They differ so move the write point on, and write into it.	
 		write_point++;
 		if(read_point!=write_point) {
-			memcpy(write_point,read_point,sizeof(AGBMergeIteratorEntry));
+			memcpy(write_point,read_point,sizeof(AGBMergeEntry));
 		}
 		n_merged_entries++;
 		read_point++;
@@ -129,13 +137,11 @@ AGBMergeIterator * agb_merge__create_iterator(const git_tree * head_tree, const 
 		read_point = all_entries;
 		for(int i=0; i<n_merged_entries; ++i ) {
 			if( // Something changed
-					//git_oid_equal dies on NULL...
-
-					agb_git_tree_entry_equal(read_point->treeentries[0], read_point->treeentries[1])==0 ||
-					agb_git_tree_entry_equal(read_point->treeentries[1], read_point->treeentries[2])==0 
+					agb_git_tree_entry_equal(read_point->treeentries[AGB_MERGE_LOCAL], read_point->treeentries[AGB_MERGE_BASE])==0 ||
+					agb_git_tree_entry_equal(read_point->treeentries[AGB_MERGE_REMOTE], read_point->treeentries[AGB_MERGE_BASE])==0
 			  ) {
 				if(read_point!=write_point) {
-					memcpy(write_point,read_point,sizeof(AGBMergeIteratorEntry));
+					memcpy(write_point,read_point,sizeof(AGBMergeEntry));
 				}
 				read_point++;
 				write_point++;
@@ -152,19 +158,18 @@ AGBMergeIterator * agb_merge__create_iterator(const git_tree * head_tree, const 
 
 	// Now we only need the merged entries;
 
-	AGBMergeIteratorEntry * merged_entries = (AGBMergeIteratorEntry*) malloc( n_merged_entries * sizeof(AGBMergeIteratorEntry) );
+	AGBMergeEntry * merged_entries = (AGBMergeEntry *) malloc( n_merged_entries * sizeof(AGBMergeEntry) );
 
-	memcpy(merged_entries, all_entries,  n_merged_entries * sizeof(AGBMergeIteratorEntry));
+	memcpy(merged_entries, all_entries,  n_merged_entries * sizeof(AGBMergeEntry));
 	
 
 	free(all_entries);
 
 	AGBMergeIterator * retval = (AGBMergeIterator*)malloc(sizeof(AGBMergeIterator));
 	memset(retval,0, sizeof(AGBMergeIterator));
-	retval->trees[0] = head_tree;
-	retval->trees[1] = branch_tree;
-	retval->trees[2] = base_tree;
-
+	retval->trees[AGB_MERGE_LOCAL] = head_tree;
+	retval->trees[AGB_MERGE_REMOTE] = branch_tree;
+	retval->trees[AGB_MERGE_BASE] = base_tree;
 
 	retval->entries = merged_entries;
 	retval->n_entries = n_merged_entries;
@@ -198,47 +203,270 @@ static int commit_oid_to_tree(git_tree ** tree, git_repository * repo, git_oid *
  * Get the SHA of the two trees we're going to merge and create an iterator from them.
  */
 __attribute__((unused))
-static AGBMergeIterator * merge( AGBCore * anbGitBridge, AGBError * error ) {
+static AGBMergeIterator * merge( 
+		AGBCore * core,
+		AGBError * error __attribute((unused))
+		) {
 
-	git_oid head_oid;
-	git_oid branch_oid;
+	git_oid local_oid;
+	git_oid remote_oid;
 	git_oid base_oid;
-	git_tree * head_tree = NULL;
-	git_tree * branch_tree = NULL;
+	git_tree * local_tree = NULL;
+	git_tree * remote_tree = NULL;
 	git_tree * base_tree = NULL;
 
+	//TODO: Use a real error?
+	assert(core);
+	assert(core->repository);
+
 	/* TODO: FIX THIS */
-	const char * branch_name = "refs/heads/branch_a";
-	git_repository * repo = anbGitBridge->repository;
-	if(!repo) return NULL;
+	const char * local_branch_name = core->local_branch_name;
+	const char * remote_branch_name = core->remote_branch_name;
+	assert(local_branch_name);
+	assert(remote_branch_name);
+	git_repository * repo = core->repository;
 	int ok;
 
+	git_reference_name_to_id(&local_oid, repo, local_branch_name);
+	git_reference_name_to_id(&remote_oid, repo, remote_branch_name);
 
-	git_reference_name_to_id(&head_oid, repo, "HEAD");
-	git_reference_name_to_id(&branch_oid, repo, branch_name);
+	ok = git_merge_base(&base_oid, repo, &local_oid, &remote_oid);
 
-	ok = git_merge_base(&base_oid, repo, &head_oid, &branch_oid);
-
-	commit_oid_to_tree(&head_tree, repo, &head_oid);
-	commit_oid_to_tree(&branch_tree, repo, &branch_oid);
+	commit_oid_to_tree(&local_tree, repo, &local_oid);
+	commit_oid_to_tree(&remote_tree, repo, &remote_oid);
 	commit_oid_to_tree(&base_tree, repo, &base_oid);
 
 
-	return agb_merge__create_iterator(head_tree, branch_tree, base_tree, agb_merge_iterator_options_NONE);
+	return agb_merge__create_iterator(local_tree, remote_tree, base_tree, agb_merge_iterator_options_NONE);
 }
 
-const git_oid * agb_merge_iterator_tree_id( const AGBMergeIterator * it, int idx) {
-	return git_tree_id(it->trees[idx]);
+const git_oid * agb_merge_iterator_tree_id( const AGBMergeIterator * it, enum AGBMergeIndex i) {
+	return git_tree_id(it->trees[i]);
 }
 
-const char * agb_merge_iterator_entry_name( const AGBMergeIterator * it) {
-       return it->entries[it->idx].name;
+const char * agb_merge_entry_name( const AGBMergeEntry * entry) {
+       return entry->name;
 }
 
-const git_oid * agb_merge_iterator_entry_id( const AGBMergeIterator * it, int idx) {
-	return agb_git_tree_entry_id(it->entries[it->idx].treeentries[idx]);
-}
-git_filemode_t agb_merge_iterator_entry_filemode( const AGBMergeIterator * it, int idx) {
-	return agb_git_tree_entry_filemode(it->entries[it->idx].treeentries[idx]);
+const git_oid * agb_merge_entry_id( const AGBMergeEntry * entry, enum AGBMergeIndex i) {
+	return agb_git_tree_entry_id(entry->treeentries[i]);
 }
 
+git_filemode_t agb_merge_entry_filemode( const AGBMergeEntry * entry, enum AGBMergeIndex i) {
+	return agb_git_tree_entry_filemode(entry->treeentries[i]);
+}
+
+AGBMergeEntry * agb_merge_entry_from_iterator(const AGBMergeIterator * it) {
+	assert(it->idx<it->n_entries);
+	return &it->entries[it->idx];
+}
+
+//A NULL safe git_oid_equal
+//TODO: Copied from merge.c - probably could make this common
+ int agb_git_oid_equal(const git_oid * oid_a, const git_oid * oid_b ) {
+    if(oid_a==NULL && oid_b==NULL) return 1;
+    if(oid_a==NULL || oid_b==NULL) return 0;
+    return git_oid_equal(oid_a,oid_b);
+}
+
+int agb_merge( AGBMerger * merger, AGBError * error) {
+	AGBMergeIterator * it = merge( merger->core, error);
+
+    AGBMerger_vtable * callbacks = merger->vtable;
+	//TODO: Use a real error code.
+	if(it==NULL)
+		return 1;
+
+	//TODO: Dispose of the iterator
+
+    //TODO: This doesn't handle type changes, or permission changes
+    for( ; agb_merge_iterator_is_valid(it) ; agb_merge_iterator_next(it) ) {
+        AGBMergeEntry *mergeEntry = agb_merge_entry_from_iterator(it);
+
+        const git_oid * base_id = agb_merge_entry_id(mergeEntry,AGB_MERGE_BASE);
+        const git_oid * local_id = agb_merge_entry_id(mergeEntry,AGB_MERGE_LOCAL);
+        const git_oid * remote_id = agb_merge_entry_id(mergeEntry,AGB_MERGE_REMOTE);
+        int hasLocalChanged = !agb_git_oid_equal(base_id, local_id );
+        int hasRemoteChanged = !agb_git_oid_equal(base_id, remote_id );
+        if(callbacks->onEveryEntry) {
+            callbacks->onEveryEntry(merger, mergeEntry);
+        }
+
+        if( !hasLocalChanged && !hasRemoteChanged ) {
+            continue;
+        }
+
+        if(callbacks->onEveryChange) {
+            callbacks->onEveryChange(merger, mergeEntry);
+        }
+
+        if( hasLocalChanged && !hasRemoteChanged ) {
+
+            //We want the local version.
+            if(agb_merge_entry_id(mergeEntry,AGB_MERGE_LOCAL) == NULL) {
+
+                if(callbacks->onRemove) {
+                    callbacks->onRemove(merger, mergeEntry, AGB_MERGE_LOCAL);
+                }
+
+                continue;
+            }
+
+            if(agb_merge_entry_id(mergeEntry,AGB_MERGE_BASE) == NULL) {
+                if(callbacks->onAdd) {
+                    callbacks->onAdd(merger, mergeEntry, AGB_MERGE_LOCAL);
+                }
+                continue;
+            }
+
+            if(callbacks->onModify) {
+                callbacks->onModify(merger, mergeEntry, AGB_MERGE_LOCAL);
+            }
+
+            //TODO: Correctly forward this.
+            //printf("ADDING OR UPDATING %s to tree\n", agb_merge_entry_name(mergeEntry) );
+            //git_treebuilder_insert(NULL, builder, agb_merge_entry_name(mergeEntry), agb_merge_entry_id(mergeEntry,AGB_MERGE_LOCAL), agb_merge_entry_filemode(mergeEntry,AGB_MERGE_LOCAL) );
+            continue;
+        }
+
+        if( !hasLocalChanged && hasRemoteChanged ) {
+
+
+            //We want the local version.
+            if(agb_merge_entry_id(mergeEntry,AGB_MERGE_REMOTE) == NULL) {
+
+                if(callbacks->onRemove) {
+                    callbacks->onRemove(merger, mergeEntry, AGB_MERGE_REMOTE);
+                }
+
+                //TODO: Correctly forward this.
+                //printf("REMOVING %s from tree\n", agb_merge_entry_name(mergeEntry) );
+                //git_treebuilder_remove(builder, agb_merge_entry_name(mergeEntry) );
+                continue;
+            }
+
+            //We want the head version.
+            if(agb_merge_entry_id(mergeEntry,AGB_MERGE_BASE) == NULL) {
+                if(callbacks->onAdd) {
+                    callbacks->onAdd(merger, mergeEntry, AGB_MERGE_REMOTE);
+                }
+                //TODO: Correctly forward this.
+                //printf("REMOVING %s from tree\n", agb_merge_entry_name(mergeEntry) );
+                //git_treebuilder_remove(builder, agb_merge_entry_name(mergeEntry) );
+                continue;
+            }
+
+
+            if(callbacks->onModify) {
+                callbacks->onModify(merger, mergeEntry, AGB_MERGE_REMOTE);
+            }
+
+            //TODO: Correctly forward this.
+            //printf("ADDING OR UPDATING %s to tree\n", agb_merge_entry_name(mergeEntry) );
+            //git_treebuilder_insert(NULL, builder, agb_merge_entry_name(mergeEntry), agb_merge_entry_id(mergeEntry,AGB_MERGE_REMOTE), agb_merge_entry_filemode(mergeEntry,AGB_MERGE_REMOTE) );
+            continue;
+        }
+
+        //TODO: Forward it.
+        printf("CONFLICT %s in tree\n", agb_merge_entry_name(mergeEntry) );
+        //TODO: CONFLICT - Handle it!
+
+    }
+#if 0
+    // Our tree builder should now be full...
+    // Lets write it out to a tree
+    //
+    //TODO: Check for errors
+    git_oid new_tree_oid = {};
+    git_treebuilder_write(&new_tree_oid, repo, builder);
+
+    char hexid[GIT_OID_HEXSZ+1];
+    printf("Tree SHA is %s\n", git_oid_tostr(hexid,GIT_OID_HEXSZ+1, &new_tree_oid));
+
+    git_tree * new_tree = NULL;
+    git_tree_lookup(&new_tree, repo, &new_tree_oid);
+
+    // Now we need to create the commit.
+    const git_commit** parents = (const git_commit**)malloc(sizeof(git_commit*)*2);
+
+    parents[0] = head_commit;
+    parents[1] = branch_commit;
+
+
+    git_signature * author_signature = NULL;
+
+    // Time since epoch
+    // TODO: Get these correctly -
+    // Could use git_signature_now instead...
+    {
+
+        git_time_t author_time = time(NULL);
+        int timezone_offset = 0;
+        int ok;
+
+        if((ok=git_signature_new(&author_signature,"Someone","someone@somewhere.com", author_time, timezone_offset))!=0) {
+            agb__error_translate(error,"git_signature_new failed",ok);
+            goto cleanup_error;
+        }
+    }
+
+
+
+    git_oid commit_id;
+    int ok = git_commit_create(
+            &commit_id,
+            repo,
+            NULL,
+            author_signature,
+            author_signature,
+            "UTF-8",
+            "An exciting commit",
+            new_tree,
+            2, //Two parents
+            parents
+    );
+    if(ok!=0) {
+        agb__error_translate(error,"git_commit_create failed",ok);
+        goto cleanup_error;
+    }
+
+    // Then update the refs.
+    //TODO: Do we need to release this ref?
+    git_reference * ref;
+    ok = git_reference_create_matching(
+            &ref,
+            repo,
+            "refs/heads/branch_c",
+            &commit_id,
+            1,
+            NULL,
+            author_signature,
+            "merged by libagb");
+
+    if(ok!=0) {
+        agb__error_translate(error,"git_reference_create failed",ok);
+        goto cleanup_error;
+    }
+
+    git_signature_free(author_signature);
+
+    // Now check we got the expected files
+    cl_assert_equal_c('A', test_core_merge__compare_with_parents_merge_base("branch_c", "created_in_a.txt"));
+    cl_assert_equal_c('A', test_core_merge__compare_with_parents_merge_base("branch_c", "created_in_b.txt"));
+
+    return;
+
+    cleanup_error:
+
+    printf("ERROR: %s\n",error->message);
+
+    if(author_signature) {
+        git_signature_free(author_signature);
+    }
+    cl_fail(error->message);
+
+
+#endif
+
+    return 0;
+}

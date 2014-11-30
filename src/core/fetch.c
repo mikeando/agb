@@ -4,11 +4,16 @@
 #include <stdio.h>
 
 
-static int update_cb(const char *refname, const git_oid *a, const git_oid *b, void *data) {
+static int update_cb(const char *refname __attribute((unused)),
+		     const git_oid *a __attribute((unused)),
+		     const git_oid *b __attribute((unused)),
+		     void *data __attribute((unused))
+		     ) {
 	return 0;
 }
 /* TODO: Do something with the data parameter */
-static int progress_cb(const git_transfer_progress *data, void *userdata) {
+static int progress_cb(const git_transfer_progress *data __attribute((unused)), 
+		       void *userdata) {
 	AGBCore * anbGitBridge = (AGBCore*)userdata;
 	if(anbGitBridge->fetch_callback) {
 		(*anbGitBridge->fetch_callback)(anbGitBridge->fetch_callback_userdata);
@@ -17,10 +22,10 @@ static int progress_cb(const git_transfer_progress *data, void *userdata) {
 }
 
 int cred_acquire_cb(git_cred **out,
-		const char * url,
-		const char * username_from_url,
-		unsigned int allowed_types,
-		void * payload) {
+		const char * url __attribute((unused)),
+		const char * username_from_url __attribute((unused)),
+		unsigned int allowed_types __attribute((unused)),
+		void * payload __attribute((unused))) {
 	char username[128] = {0};
 	char password[128] = {0};
 
@@ -147,7 +152,11 @@ cleanup_error:
 	return error->error_code;
 }
  
-int agb_set_fetch_callback(AGBCore * anbGitBridge, AGBCallback fetch_callback, void * userdata, AGBError * error) {
+int agb_set_fetch_callback(AGBCore * anbGitBridge, 
+		           AGBCallback fetch_callback, 
+			   void * userdata,
+			   AGBError * error __attribute((unused))
+			   ) {
 	anbGitBridge->fetch_callback = fetch_callback;
 	anbGitBridge->fetch_callback_userdata = userdata;
 	return 0;
