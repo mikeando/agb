@@ -368,7 +368,10 @@ int agb_merge( AGBMerger * merger, AGBError * error) {
         }
 
         //TODO: Forward it.
-        printf("CONFLICT %s in tree\n", agb_merge_entry_name(mergeEntry) );
+		if(callbacks->onConflict) {
+			callbacks->onConflict(merger, mergeEntry);
+		}
+        //printf("CONFLICT %s in tree\n", agb_merge_entry_name(mergeEntry) );
         //TODO: CONFLICT - Handle it!
 
     }

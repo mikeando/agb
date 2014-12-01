@@ -411,60 +411,63 @@ static const char * index_to_string(enum AGBMergeIndex idx) {
     return "invalid";
 }
 
-static int merge_conflict(AGBMerger * self, AGBMergeEntry * entry) {
-	printf("Got a conflict : self = %p, entry = %p\n", self, entry);
+#include "utils/test_utils_x.h"
+
+static agbtu_cxxstrset * conflicts;
+static agbtu_cxxstrset * changed;
+static agbtu_cxxstrset * added;
+static agbtu_cxxstrset * deleted;
+static agbtu_cxxstrset * updated;
+
+static int merge_conflict(AGBMerger * self __attribute((unused)), AGBMergeEntry * entry) {
+	agbtu_cxxstrset_add(conflicts, entry->name);
+  	return 0;
+}
+
+static int merge_every(AGBMerger * self __attribute((unused)), AGBMergeEntry * entry __attribute((unused))) {
+	return 0;
+}
+
+static int merge_changed(AGBMerger * self __attribute((unused)), AGBMergeEntry * entry) {
+	agbtu_cxxstrset_add(changed, entry->name);
   return 0;
 }
 
-static int merge_every(AGBMerger * self, AGBMergeEntry * entry) {
-    const git_oid * base_id = agb_merge_entry_id(entry,AGB_MERGE_BASE);
-    const git_oid * local_id = agb_merge_entry_id(entry,AGB_MERGE_LOCAL);
-    const git_oid * remote_id = agb_merge_entry_id(entry,AGB_MERGE_REMOTE);
-    int hasLocalChanged = !agb_git_oid_equal(base_id, local_id );
-    int hasRemoteChanged = !agb_git_oid_equal(base_id, remote_id );
-    printf("-- %s localChanged = %d  remote changed = %d\n", agb_merge_entry_name(entry), hasLocalChanged, hasRemoteChanged);
-    return 0;
-}
-
-static int merge_changed(AGBMerger * self, AGBMergeEntry * entry) {
-	printf("Got a change : self = %p, entry = %p\n", self, entry);
-  return 0;
-}
-
-static int merge_add(AGBMerger * self, AGBMergeEntry * entry, enum AGBMergeIndex idx) {
-    printf("ADDING  %s to tree from %s\n", agb_merge_entry_name(entry), index_to_string(idx));
+static int merge_add(AGBMerger * self __attribute((unused)), AGBMergeEntry * entry, enum AGBMergeIndex idx __attribute((unused))) {
+	agbtu_cxxstrset_add(added, entry->name);
     //git_treebuilder_insert(NULL, builder, agb_merge_entry_name(mergeEntry), agb_merge_entry_id(mergeEntry,AGB_MERGE_LOCAL), agb_merge_entry_filemode(mergeEntry,AGB_MERGE_LOCAL) );
     return 0;
 }
 
+static int merge_delete(AGBMerger * self __attribute((unused)), AGBMergeEntry * entry, enum AGBMergeIndex idx __attribute((unused))) {
+	agbtu_cxxstrset_add(deleted, entry->name);
 
-
-static int merge_delete(AGBMerger * self, AGBMergeEntry * entry, enum AGBMergeIndex idx) {
-    printf("REMOVING %s from tree - deleted in %s\n", agb_merge_entry_name(entry), index_to_string(idx) );
     //git_treebuilder_remove(builder, agb_merge_entry_name(entry) );
     return 0;
 }
 
-static int merge_update(AGBMerger * self, AGBMergeEntry * entry, enum AGBMergeIndex idx) {
-    printf("UPDATING %s from tree - deleted in %s\n", agb_merge_entry_name(entry), index_to_string(idx) );
+static int merge_update(AGBMerger * self __attribute((unused)), AGBMergeEntry * entry, enum AGBMergeIndex idx __attribute((unused))) {
+	agbtu_cxxstrset_add(updated, entry->name);
     //git_treebuilder_insert(NULL, builder, agb_merge_entry_name(mergeEntry), agb_merge_entry_id(mergeEntry,AGB_MERGE_LOCAL), agb_merge_entry_filemode(mergeEntry,AGB_MERGE_LOCAL) );
     return 0;
 }
 
-static int merge_done(AGBMerger * self) {
-	printf("Merge completed : self = %p\n", self);
+static int merge_done(AGBMerger * self __attribute((unused))) {
   return 0;
 }
 
-static int merge_failed(AGBMerger * self) {
-	printf("Merge failed : self = %p\n", self);
+static int merge_failed(AGBMerger * self __attribute((unused))) {
   return 0;
 }
 
-/* Create a merge commit using the higher level API. */
-void test_core_merge__demo_create_merge_commit2(void) {
+/* Compare a potential merge using the higher level API. */
+void test_core_merge__test_merge_callbacks(void) {
 
-    printf("RUNNING DEMO MERGE COMMIT2\n==================\n");
+	conflicts = agbtu_cxxstrset_create();
+	changed = agbtu_cxxstrset_create();
+	added = agbtu_cxxstrset_create();
+	deleted = agbtu_cxxstrset_create();
+	updated = agbtu_cxxstrset_create();
 
 	AGBError * error;
 	agb_error_new(&error);
@@ -498,9 +501,28 @@ void test_core_merge__demo_create_merge_commit2(void) {
 
     int ok = agb_merge(&merger, error);
 
-	printf("agb_merge returned....\n");
+	//printf("agb_merge returned....\n");
 
-    printf("DONE WITH DEMO MERGE COMMIT2\n==================\n");
+    //printf("DONE WITH DEMO MERGE COMMIT2\n==================\n");
+
+	cl_assert_equal_i(1, agbtu_cxxstrset_count(conflicts));
+	cl_assert(agbtu_cxxstrset_contains(conflicts, "conflict.txt"));
+	cl_assert_equal_i(7, agbtu_cxxstrset_count(changed));
+	cl_assert_equal_i(2, agbtu_cxxstrset_count(added));
+	cl_assert(agbtu_cxxstrset_contains(added, "created_in_a.txt"));
+	cl_assert(agbtu_cxxstrset_contains(added, "created_in_b.txt"));
+	cl_assert_equal_i(2, agbtu_cxxstrset_count(deleted));
+	cl_assert(agbtu_cxxstrset_contains(deleted, "remove_me_in_a.txt"));
+	cl_assert(agbtu_cxxstrset_contains(deleted, "remove_me_in_b.txt"));
+	cl_assert_equal_i(2, agbtu_cxxstrset_count(updated));
+	cl_assert(agbtu_cxxstrset_contains(updated, "modify_in_a.txt"));
+	cl_assert(agbtu_cxxstrset_contains(updated, "modify_in_b.txt"));
+
+	agbtu_cxxstrset_destroy(conflicts);
+	agbtu_cxxstrset_destroy(changed);
+	agbtu_cxxstrset_destroy(added);
+	agbtu_cxxstrset_destroy(deleted);
+	agbtu_cxxstrset_destroy(updated);
 
 
 }
